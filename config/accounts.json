@@ -1,0 +1,8 @@
+[
+		{
+			"provider": "aws-s3",
+			"identity": "XXXXXXX",
+			"credential": "YYYYY/ZZZZZ",
+			"containerName": "safecloudfs1"
+		}
+]

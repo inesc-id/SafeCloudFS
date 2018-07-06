@@ -1,0 +1,161 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>pt.inescid</groupId>
+	<artifactId>SafeCloudFS</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<name>SafeCloudFS</name>
+	<description>SafeCloudFS</description>
+
+	<properties>
+
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+
+		<jclouds.version>2.1.0</jclouds.version>
+
+		<config.file>config/safecloudfs.properties</config.file>
+		<hosts.file>config/hosts.config</hosts.file>
+		<access.keys.file>config/accounts.json</access.keys.file>
+		<dir>mount</dir>
+		<cache.dir>/Users/davidmatos/cache</cache.dir>
+		<debug.level>ALL</debug.level>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+	</properties>
+
+
+	<repositories>
+
+		<!-- JNR-FUSE - https://github.com/SerCeMan/jnr-fuse -->
+		<repository>
+			<id>central</id>
+			<name>bintray</name>
+			<url>http://jcenter.bintray.com</url>
+		</repository>
+
+	</repositories>
+
+
+
+
+	<dependencies>
+
+		<dependency>
+			<!-- JClouds - https://jclouds.apache.org/start/install/ -->
+			<groupId>org.apache.jclouds</groupId>
+			<artifactId>jclouds-all</artifactId>
+			<version>${jclouds.version}</version>
+		</dependency>
+
+		<!-- JNR-FUSE - https://github.com/SerCeMan/jnr-fuse -->
+		<dependency>
+			<groupId>com.github.serceman</groupId>
+			<artifactId>jnr-fuse</artifactId>
+			<version>0.5.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.depspace</groupId>
+			<artifactId>depspacito</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- https://github.com/pcj/google-options -->
+		<dependency>
+			<groupId>com.github.pcj</groupId>
+			<artifactId>google-options</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<!-- Loaded from libs/folder -->
+		<!-- Developed by Prof. Alysson Bessani bessani@ciencias.ulisboa.pt -->
+		<dependency>
+			<groupId>com.ufsc</groupId>
+			<artifactId>pvss</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<!-- Loaded from libs/folder -->
+		<dependency>
+			<groupId>backblaze.backblaze</groupId>
+			<artifactId>JavaReedSolomon</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<!-- https://github.com/codahale/shamir -->
+		<dependency>
+			<groupId>com.codahale</groupId>
+			<artifactId>shamir</artifactId>
+			<version>0.6.0</version>
+		</dependency>
+
+
+		<!-- To fix error in newer versions of Java that do not pack JavaX -->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk16 -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk16</artifactId>
+			<version>1.46</version>
+		</dependency>
+
+	</dependencies>
+
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>pt.inescid.safecloudfs.SafeCloudFS</mainClass>
+					<executable>java</executable>
+					<arguments>
+						<argument>--config</argument>
+						<argument>${config.file}</argument>
+
+						<argument>--accessKeys</argument>
+						<argument>${access.keys.file}</argument>
+
+						<argument>--mount</argument>
+						<argument>${dir}</argument>
+
+						<argument>--cache</argument>
+						<argument>${cache.dir}</argument>
+
+						<argument>--debug</argument>
+						<argument>${debug.level}</argument>
+
+						<!-- This option will execute a GUI that allows the admin to recover
+							from intrusions -->
+<!-- 						 argument recovery argument  -->
+
+
+					</arguments>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>
+
