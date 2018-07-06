@@ -25,6 +25,6 @@ hs_err_pid*
 .classpath
 .project
 /target/
-/mount/
+mount/
 
-/config/accounts.json
+config/accounts.json

@@ -34,6 +34,8 @@ sh install.sh
 
 ## Running SafeCloudFS
 
+Before executing SafeCloudFS fill the cofiguration files in `config` folder.
+
 Execution arguments are set in the pom.xml file.
 
 ### Arguments
@@ -56,8 +58,13 @@ mvn exec:java
 ### Running via Docker
 ```
 docker build -t safecloudfs .
-docker run --cap-add SYS_ADMIN --device /dev/fuse -i safecloudfs
+docker run -it --privileged --cap-add SYS_ADMIN --device /dev/fuse -i safecloudfs
 ```
+Then inside the container execute
+```
+mvn exec:java
+```
+
 
 ## Built With
 
