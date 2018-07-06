@@ -38,10 +38,10 @@ Execution arguments are set in the pom.xml file.
 
 ### Arguments
 
-* --mount <path> - Directory to be mount
-* --config <path> - Config file path
-* --accessKeys <path> -  JSON file with cloud access keys file
-* --depspace <path> - Depspace hosts file
+* --mount [path] - Directory to be mount
+* --config [path] - Config file path
+* --accessKeys [path] -  JSON file with cloud access keys file
+* --depspace [path] - Depspace hosts file
 * --zookeeper <IPAddress> - Zookeeper server address
 * -- debug <ALL, SIMPLE, WARNING, SEVERE, INFO, FINE, FINER, FINEST> - Execute with debug log messages
 * --recovery - Opens a GUI that allows intrusion recovery
