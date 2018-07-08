@@ -40,7 +40,11 @@ public class SafeCloudFSLogLocal implements SafeCloudFSLog {
 			}
 
 
+			if(safeCloudFsLogEntry.operation != SafeCloudFSOperation.WRITE) {
+				currentVersion--;
+			}
 			safeCloudFsLogEntry.version = currentVersion;
+
 
 			for (SafeCloudFSLogEntry entry : this.entries) {
 				if (entry.equals(safeCloudFsLogEntry)) {

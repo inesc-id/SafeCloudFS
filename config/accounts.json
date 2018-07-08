@@ -1,8 +1,8 @@
 [
 	{
 		"provider": "aws-s3",
-		"identity": "ZZZZ",
-		"credential": "ZZZ/ZZZ",
+		"identity": "YOUR_AMAZON_IDENTITY",
+		"credential": "YOUR_AMAZON_CREDENTIAL",
 		"containerName": "safecloudfs1"
 	}
 ]

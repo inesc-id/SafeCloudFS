@@ -140,6 +140,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 				stat.st_uid.set(getContext().uid.get());
 				stat.st_gid.set(getContext().gid.get());
+
+
+
 				return 0;
 			}
 			return -ErrorCodes.ENOENT();
@@ -534,6 +537,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	@Override
 	public int chmod(String path, long mode) {
 		try {
+			System.out.println("CHMOD  " + mode);
 			this.directoryService.setMode(path, mode);
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,

@@ -1,6 +1,7 @@
 package pt.inescid.safecloudfs.recovery.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -27,6 +28,12 @@ import pt.inescid.safecloudfs.directoryService.DirectoryService;
 import pt.inescid.safecloudfs.recovery.FileRecover;
 import pt.inescid.safecloudfs.recovery.SafeCloudFSLog;
 import pt.inescid.safecloudfs.recovery.SafeCloudFSLogEntry;
+import javax.swing.JLabel;
+import java.awt.Font;
+import javax.swing.SwingConstants;
+import javax.swing.BoxLayout;
+import java.awt.FlowLayout;
+import javax.swing.SpringLayout;
 
 public class SafeCloudFSLogViewer {
 
@@ -43,8 +50,6 @@ public class SafeCloudFSLogViewer {
 	private DirectoryService directoryService;
 
 	private SafeCloudFSLog safeCloudLog;
-
-
 
 	public void setLog(SafeCloudFSLog safeCloudLog) {
 		this.safeCloudLog = safeCloudLog;
@@ -65,7 +70,7 @@ public class SafeCloudFSLogViewer {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(100, 100, 710, 406);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
@@ -78,39 +83,67 @@ public class SafeCloudFSLogViewer {
 
 		JPanel panelTop = new JPanel();
 		splitPane.setLeftComponent(panelTop);
-		panelTop.setLayout(new GridLayout(0, 1, 0, 0));
 
 		root = new DefaultMutableTreeNode("/");
 
 		model = new DefaultTreeModel(root);
+		SpringLayout sl_panelTop = new SpringLayout();
+		panelTop.setLayout(sl_panelTop);
+
+		JLabel lblFileSystemFiles = new JLabel("File system files");
+		sl_panelTop.putConstraint(SpringLayout.NORTH, lblFileSystemFiles, 0, SpringLayout.NORTH, panelTop);
+		sl_panelTop.putConstraint(SpringLayout.WEST, lblFileSystemFiles, 0, SpringLayout.WEST, panelTop);
+		sl_panelTop.putConstraint(SpringLayout.EAST, lblFileSystemFiles, 0, SpringLayout.EAST, panelTop);
+		lblFileSystemFiles.setVerticalAlignment(SwingConstants.TOP);
+		lblFileSystemFiles.setFont(new Font("Lucida Grande", Font.PLAIN, 30));
+
+		panelTop.add(lblFileSystemFiles);
 
 		treeFileSystem = new JTree(model);
+		sl_panelTop.putConstraint(SpringLayout.NORTH, treeFileSystem, 0, SpringLayout.SOUTH, lblFileSystemFiles);
+		sl_panelTop.putConstraint(SpringLayout.WEST, treeFileSystem, 0, SpringLayout.WEST, lblFileSystemFiles);
+		sl_panelTop.putConstraint(SpringLayout.SOUTH, treeFileSystem, 0, SpringLayout.SOUTH, panelTop);
+		sl_panelTop.putConstraint(SpringLayout.EAST, treeFileSystem, 0, SpringLayout.EAST, lblFileSystemFiles);
 		panelTop.add(treeFileSystem);
 
 		JPanel panelBottom = new JPanel();
 		splitPane.setRightComponent(panelBottom);
-		panelBottom.setLayout(new GridLayout(0, 1, 0, 0));
+		SpringLayout sl_panelBottom = new SpringLayout();
+		panelBottom.setLayout(sl_panelBottom);
+
+		JLabel lblLogOfOperations = new JLabel("Log of operations");
+		sl_panelBottom.putConstraint(SpringLayout.NORTH, lblLogOfOperations, 0, SpringLayout.NORTH, panelBottom);
+		sl_panelBottom.putConstraint(SpringLayout.WEST, lblLogOfOperations, 0, SpringLayout.WEST, panelBottom);
+//		sl_panelBottom.putConstraint(SpringLayout.SOUTH, lblLogOfOperations, 41, SpringLayout.NORTH, panelBottom);
+		sl_panelBottom.putConstraint(SpringLayout.EAST, lblLogOfOperations, 0, SpringLayout.EAST, panelBottom);
+		lblLogOfOperations.setVerticalAlignment(SwingConstants.TOP);
+		lblLogOfOperations.setFont(new Font("Lucida Grande", Font.PLAIN, 30));
+		panelBottom.add(lblLogOfOperations);
 
 		JScrollPane scrollPane = new JScrollPane();
+		sl_panelBottom.putConstraint(SpringLayout.NORTH, scrollPane, 0, SpringLayout.SOUTH, lblLogOfOperations);
+		sl_panelBottom.putConstraint(SpringLayout.WEST, scrollPane, 0, SpringLayout.WEST, lblLogOfOperations);
+		sl_panelBottom.putConstraint(SpringLayout.SOUTH, scrollPane, 0, SpringLayout.SOUTH, panelBottom);
+		sl_panelBottom.putConstraint(SpringLayout.EAST, scrollPane, 0, SpringLayout.EAST, lblLogOfOperations);
 		panelBottom.add(scrollPane);
 
 		tableLog = new JTable();
 		scrollPane.setViewportView(tableLog);
 		tableLog.setFillsViewportHeight(true);
 
-		tableLogModel = new DefaultTableModel(new Object[0][0], new Object[] {"id", "timestamp", "userId", "filePath",
+		tableLogModel = new DefaultTableModel(new Object[0][0], new Object[] { "id", "timestamp", "userId", "filePath",
 				"fileNLink", "version", "operation", "clientIpAddress", "mode" });
 		tableLog.setModel(tableLogModel);
 
-		tableLog.setAutoCreateRowSorter(true); //a generic sorter
+		tableLog.setAutoCreateRowSorter(true); // a generic sorter
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		JMenuItem menuItemUndo = new JMenuItem("Undo to this version");
 		menuItemUndo.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 
-
-				int logEntryId = Integer.parseInt(tableLog.getModel().getValueAt(tableLog.getSelectedRow(), 0).toString());
+				int logEntryId = Integer
+						.parseInt(tableLog.getModel().getValueAt(tableLog.getSelectedRow(), 0).toString());
 				SafeCloudFSLogEntry logEntry = SafeCloudFS.safeCloudFSLog.getLogEntryById(logEntryId);
 
 				FileRecover.undoLogEntry(logEntry);
@@ -121,7 +154,6 @@ public class SafeCloudFSLogViewer {
 		popupMenu.add(menuItemUndo);
 
 		tableLog.setComponentPopupMenu(popupMenu);
-
 
 		MouseListener ml = new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
@@ -152,7 +184,6 @@ public class SafeCloudFSLogViewer {
 			addLogEntry(entry);
 		}
 
-
 	}
 
 	public void addLogEntry(SafeCloudFSLogEntry logEntry) {
@@ -161,7 +192,7 @@ public class SafeCloudFSLogViewer {
 
 		String formattedId = String.format("%04d", logEntry.id);
 
-		((DefaultTableModel) tableLogModel).addRow(new Object[] {formattedId, ts, logEntry.userId, logEntry.filePath,
+		((DefaultTableModel) tableLogModel).addRow(new Object[] { formattedId, ts, logEntry.userId, logEntry.filePath,
 				logEntry.fileNLink, logEntry.version, logEntry.operation, logEntry.clientIpAddress, logEntry.mode });
 		updateTreeFileSystemNode();
 	}
@@ -178,21 +209,21 @@ public class SafeCloudFSLogViewer {
 	private void readDirAndPopulateTree(String path, DefaultMutableTreeNode thisNode) {
 		ArrayList<String> dirObjects = this.directoryService.readDir(path);
 		for (String object : dirObjects) {
+			if (!object.startsWith(".")) {
+				String objectPath = "";
+				if (path.equals("/")) {
+					objectPath = path + object;
+				} else {
+					objectPath = path + "/" + object;
+				}
 
-			String objectPath = "";
-			if (path.equals("/")) {
-				objectPath = path + object;
-			} else {
-				objectPath = path + "/" + object;
-			}
+				DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(object);
+				thisNode.add(newNode);
+				if (directoryService.isDir(objectPath)) {
 
-			DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(object);
+					readDirAndPopulateTree(objectPath, newNode);
+				}
 
-			thisNode.add(newNode);
-
-			if (directoryService.isDir(objectPath)) {
-
-				readDirAndPopulateTree(objectPath, newNode);
 			}
 
 		}
