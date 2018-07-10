@@ -31,7 +31,7 @@ public class SafeCloudFSLogEntry {
 
 	public SafeCloudFSLogEntry() {
 		this.timestamp = Calendar.getInstance().getTimeInMillis();
-		this.clientIpAddress = SafeCloudFSProperties.CLIENT_IP_ADDRESS;
+		this.clientIpAddress = SafeCloudFSProperties.clientIpAddress;
 	}
 
 	public SafeCloudFSLogEntry(int id, long userId, String filePath, long fileNLink, SafeCloudFSOperation operation,
@@ -43,7 +43,7 @@ public class SafeCloudFSLogEntry {
 		this.version = 0;
 		this.operation = operation;
 		this.mode = mode;
-		this.clientIpAddress = SafeCloudFSProperties.CLIENT_IP_ADDRESS;
+		this.clientIpAddress = SafeCloudFSProperties.clientIpAddress;
 	}
 
 	public SafeCloudFSLogEntry(int id, long userId, String filePath, long fileNLink, int version,
@@ -55,7 +55,7 @@ public class SafeCloudFSLogEntry {
 		this.version = version;
 		this.operation = operation;
 		this.mode = mode;
-		this.clientIpAddress = SafeCloudFSProperties.CLIENT_IP_ADDRESS;
+		this.clientIpAddress = SafeCloudFSProperties.clientIpAddress;
 	}
 
 	@Override

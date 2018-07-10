@@ -35,22 +35,22 @@ public class CloudAccounts {
 			return accounts;
 		}
 		try {
-			Reader reader = new InputStreamReader(new FileInputStream(new File(SafeCloudFSProperties.ACCOUNTS_FILE)), "UTF-8");
+			Reader reader = new InputStreamReader(new FileInputStream(new File(SafeCloudFSProperties.cloudAccountsFile)), "UTF-8");
 
 			Gson gson = new GsonBuilder().create();
 
 			CloudAccount[] accounts = gson.fromJson(reader, CloudAccount[].class);
-			SafeCloudFSProperties.CLOUDS_N = accounts.length;
+			SafeCloudFSProperties.cloudsN = accounts.length;
 			return accounts;
 
 		} catch (FileNotFoundException fnfe) {
 
 			SafeCloudFSUtils.LOGGER.severe("Cloud accounts file with access credentials does not exist in: '"
-					+ SafeCloudFSProperties.ACCOUNTS_FILE + "'");
+					+ SafeCloudFSProperties.cloudAccountsFile + "'");
 			System.exit(-1);
 		} catch (UnsupportedEncodingException e) {
 			SafeCloudFSUtils.LOGGER
-					.severe("Unsupported encoding of file: '" + SafeCloudFSProperties.ACCOUNTS_FILE + "'. " + e.getMessage());
+					.severe("Unsupported encoding of file: '" + SafeCloudFSProperties.cloudAccountsFile + "'. " + e.getMessage());
 			System.exit(-1);
 		}
 		return null;

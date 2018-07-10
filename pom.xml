@@ -19,11 +19,12 @@
 		<jclouds.version>2.1.0</jclouds.version>
 
 		<config.file>config/safecloudfs.properties</config.file>
-		<hosts.file>config/hosts.config</hosts.file>
-		<access.keys.file>config/accounts.json</access.keys.file>
+<!-- 		<hosts.file>config/hosts.config</hosts.file> -->
+<!-- 		<access.keys.file>config/accounts.json</access.keys.file> -->
 		<dir>mount</dir>
-		<cache.dir>/Users/davidmatos/cache</cache.dir>
+<!-- 		<cache.dir>/Users/davidmatos/cache</cache.dir> -->
 		<debug.level>ALL</debug.level>
+
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
@@ -75,11 +76,11 @@
 
 		<!-- Loaded from libs/folder -->
 		<!-- Developed by Prof. Alysson Bessani bessani@ciencias.ulisboa.pt -->
-		<dependency>
-			<groupId>com.ufsc</groupId>
-			<artifactId>pvss</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.ufsc</groupId> -->
+<!-- 			<artifactId>pvss</artifactId> -->
+<!-- 			<version>1.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
 
 		<!-- Loaded from libs/folder -->
 		<dependency>
@@ -130,24 +131,17 @@
 					<mainClass>pt.inescid.safecloudfs.SafeCloudFS</mainClass>
 					<executable>java</executable>
 					<arguments>
-						<argument>--config</argument>
-						<argument>${config.file}</argument>
 
-						<argument>--accessKeys</argument>
-						<argument>${access.keys.file}</argument>
 
 						<argument>--mount</argument>
 						<argument>${dir}</argument>
 
-						<argument>--cache</argument>
-						<argument>${cache.dir}</argument>
+
 
 						<argument>--debug</argument>
 						<argument>${debug.level}</argument>
 
-						<!-- This option will execute a GUI that allows the admin to recover
-							from intrusions -->
-<!-- 						 argument recovery argument  -->
+
 
 
 					</arguments>

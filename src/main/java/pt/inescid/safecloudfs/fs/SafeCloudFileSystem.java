@@ -99,8 +99,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	public int create(String path, @mode_t long mode, FuseFileInfo fi) {
 		try {
 
-			System.out.println(fi.toString());
-			System.out.println("Create: path=" + path + " mode=" + mode);
 			if (this.directoryService.exists(path)) {
 				return -ErrorCodes.EEXIST();
 			}
@@ -330,7 +328,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int truncate(String path, long offset) {
-		System.out.println("truncate");
 		try {
 			if (!this.directoryService.exists(path)) {
 				return -ErrorCodes.ENOENT();
@@ -361,7 +358,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	public int unlink(String path) {
 		try {
 
-			System.out.println("unlink");
 			if (!this.directoryService.exists(path)) {
 				return -ErrorCodes.ENOENT();
 			}
@@ -389,7 +385,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	@Override
 	public int open(String path, FuseFileInfo fi) {
 		try {
-			System.out.println("open");
 
 			return 0;
 		} catch (Exception e) {
@@ -401,7 +396,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	@Override
 	public int write(String path, Pointer buf, @size_t long size, @off_t long offset, FuseFileInfo fi) {
 		try {
-			System.out.println("write");
 			if (!this.directoryService.exists(path)) {
 				return -ErrorCodes.ENOENT();
 			}
@@ -441,8 +435,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			bytes[toIntExact(i)] = buffer.getByte(i);
 		}
 
-		// System.out.println("path=" + path + " content=" + new String(bytes) + "
-		// bufSize=" + bufSize);
 		cloudBroker.upload(SafeCloudFSUtils.getFileName(nLink), bytes);
 
 		if (this.cacheService != null) {
@@ -467,7 +459,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 		}
 
-		System.out.println("Le size: " + bufSize + " le offesset:" + writeOffset);
 		return toIntExact(bufSize);
 	}
 
@@ -485,8 +476,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	 */
 	private void logDelta(String path, Pointer buffer, long size, long offset, FuseFileInfo fi, int versionNumber) {
 		long nLink = this.directoryService.getNLink(path);
-
-		System.out.println("Will log version " + versionNumber);
 		if (versionNumber == 0) {
 			//There is no delta o calculate since this is the first version of the file
 			return;
@@ -521,8 +510,8 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			// if we are running CA protocol then we must also backup the previous version
 			// key file
-			if (SafeCloudFSProperties.FILESYSTEM_PROTOCOL == SafeCloudFSProperties.DEPSKY_CA
-					&& SafeCloudFSProperties.CLOUDS_N > 1) {
+			if (SafeCloudFSProperties.fileSystemProtocol == SafeCloudFSProperties.DEPSKY_CA
+					&& SafeCloudFSProperties.cloudsN > 1) {
 				byte[] key = cloudBroker.download(SafeCloudFSUtils.getKeyName(nLink));
 				cloudBroker.upload(SafeCloudFSUtils.getLogEntryKeyName(nLink, versionNumber), key);
 			}
@@ -537,7 +526,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	@Override
 	public int chmod(String path, long mode) {
 		try {
-			System.out.println("CHMOD  " + mode);
 			this.directoryService.setMode(path, mode);
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
@@ -556,7 +544,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	public int setxattr(String path, String name, Pointer value, long size, int flags) {
 		// TODO Auto-generated method stub
 
-		// System.out.println("XATTR=" + name + " value=" + value.toString());
 
 		return super.setxattr(path, name, value, size, flags);
 	}

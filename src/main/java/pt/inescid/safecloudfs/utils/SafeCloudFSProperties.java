@@ -7,36 +7,39 @@ import java.util.Properties;
 
 public class SafeCloudFSProperties {
 
-
+	//Constants
 	public static final boolean SYNC = true;
 	public static final boolean ASYNC = false;
 
 	public static final boolean DEPSKY_A = true;
 	public static final boolean DEPSKY_CA = false;
 
-	public static final String PROPERTIES_FILE_SYSTEM_PROTOCOL = "filesystem.protocol";
-	public static final String PROPERTIES_UPLOAD_METHOD = "upload.method";
-	public static final String PROPERTIES_CLOUDS_F = "clouds.f";
+	private static final String PROPERTIES_FILE_SYSTEM_PROTOCOL = "filesystem.protocol";
+	private static final String PROPERTIES_UPLOAD_METHOD = "upload.method";
+	private static final String PROPERTIES_CLOUDS_F = "clouds.f";
+	private static final String PROPERTIES_DEPSPACE_HOSTS_FILE = "depspace.hosts.file";
+	private static final String PROPERTIES_ACCESS_KEYS_FILE = "access.keys.file";
+	private static final String PROPERTIES_CACHE_DIR = "cache.dir";
+	private static final String PROPERTIES_RECOVERY_GUI = "recovery.gui";
+	private static final String PROPERTIES_ZOOKEEPER_HOST = "zookeeper.host";
 
-	public static String MOUNTED_DIR = "";
 
-	public static boolean FILESYSTEM_PROTOCOL = DEPSKY_A;
 
-	public static String ACCOUNTS_FILE = "";
 
-	public static int NUMBER_OF_CLOUDS = 0;
+	//Execution properties of the file system
+	public static String mountedDir = "";
+	public static boolean fileSystemProtocol = DEPSKY_A;
+	public static String cloudAccountsFile = "";
+	public static boolean uploadMethod = SYNC;
+	public static int cloudsF = 0;
+	public static int cloudsN = 0;
+	public static String depspaceHostsFile;
+	public static boolean useCache = false;
+	public static String cacheDir = "";
+	public static String clientIpAddress;
+	public static boolean recoveryGui;
+	public static String zookeeperHost;
 
-	public static boolean UPLOAD_METHOD = SYNC;
-
-	public static int CLOUDS_F = 0;
-	public static int CLOUDS_N = 0;
-
-	public static String DEPSPACE_HOSTS_FILE;
-
-	public static boolean USE_CACHE = false;
-	public static String CACHE_DIR = "";
-
-	public static String CLIENT_IP_ADDRESS;
 
 
 	/**
@@ -53,10 +56,17 @@ public class SafeCloudFSProperties {
 
 			properties.load(fis);
 
-			FILESYSTEM_PROTOCOL = properties.getProperty(PROPERTIES_FILE_SYSTEM_PROTOCOL).equalsIgnoreCase("DepSky-A");
+			fileSystemProtocol = properties.getProperty(PROPERTIES_FILE_SYSTEM_PROTOCOL).equalsIgnoreCase("DepSky-A");
+			uploadMethod = properties.getProperty(PROPERTIES_UPLOAD_METHOD).equals("sync");
+			cloudsF = Integer.parseInt(properties.getProperty(PROPERTIES_CLOUDS_F));
+			depspaceHostsFile = properties.getProperty(PROPERTIES_DEPSPACE_HOSTS_FILE);
+			cloudAccountsFile = properties.getProperty(PROPERTIES_ACCESS_KEYS_FILE);
+			cacheDir = properties.getProperty(PROPERTIES_CACHE_DIR);
+			useCache  = (cacheDir != null);
+			recoveryGui = properties.getProperty(PROPERTIES_RECOVERY_GUI).equalsIgnoreCase("true");
+			zookeeperHost = properties.getProperty(PROPERTIES_ZOOKEEPER_HOST);
 
-			UPLOAD_METHOD = properties.getProperty(PROPERTIES_UPLOAD_METHOD).equals("sync");
-			CLOUDS_F = Integer.parseInt(properties.getProperty(PROPERTIES_CLOUDS_F));
+
 
 		} catch (IOException e) {
 			System.err.println("Couldn't open config file in " + configFile);

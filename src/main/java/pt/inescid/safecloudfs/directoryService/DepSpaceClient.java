@@ -40,7 +40,6 @@ public class DepSpaceClient implements DirectoryService {
 			accessor = new DepSpaceAdmin(clientID).createSpace(prop);
 			DepTuple tuple = new FileSystemEntry("/", true, 0, 0, 0).toTuple();
 			accessor.out(tuple);
-			System.out.println(accessor.rd(tuple).toString());
 
 			DepTuple template = DepTuple.createTuple(new Object[] { "nlink", "*" });
 
@@ -106,13 +105,11 @@ public class DepSpaceClient implements DirectoryService {
 
 	@Override
 	public void mkfile(String path) {
-		System.out.println("MKFile path=" + path);
 
 		try {
 			FileSystemEntry fse = new FileSystemEntry(path, false, 0, Calendar.getInstance().getTimeInMillis(),
 					getNewNLink());
 			DepTuple tuple = fse.toTuple();
-			System.out.println("Tuple=" + tuple.toString());
 			try {
 				accessor.out(tuple);
 			} catch (DepSpaceException e) {
@@ -126,7 +123,6 @@ public class DepSpaceClient implements DirectoryService {
 
 	@Override
 	public void mkdir(String path) {
-		System.out.println("MKDIR = " + path);
 		try {
 			FileSystemEntry fse = new FileSystemEntry(path, true, 0, Calendar.getInstance().getTimeInMillis(),
 					getNewNLink());
@@ -147,7 +143,6 @@ public class DepSpaceClient implements DirectoryService {
 	public long getNLink(String path) {
 		try {
 			long result = new FileSystemEntry(path).nlink;
-			System.out.println("getNLink= " + result);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -159,7 +154,6 @@ public class DepSpaceClient implements DirectoryService {
 	public Number getMode(String path) {
 		try {
 			Number result = new FileSystemEntry(path).mode;
-			System.out.println("getMode= " + result);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -184,7 +178,6 @@ public class DepSpaceClient implements DirectoryService {
 	public boolean exists(String path) {
 		try {
 			boolean result = new FileSystemEntry(path).path != null;
-			System.out.println("Exists? (" + path + ")=" + result);
 			return result;
 		} catch (Exception e) {
 			return false;
@@ -195,7 +188,6 @@ public class DepSpaceClient implements DirectoryService {
 	public boolean isDir(String path) {
 		try {
 			boolean result = new FileSystemEntry(path).isDir;
-			System.out.println("isDir? (" + path + ")=" + result);
 			return result;
 		} catch (Exception e) {
 			return false;
@@ -214,7 +206,6 @@ public class DepSpaceClient implements DirectoryService {
 				parentPath = "/";
 			}
 
-			System.out.println("getParent=(" + path + ")=" + parentPath);
 			return parentPath;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -243,7 +234,6 @@ public class DepSpaceClient implements DirectoryService {
 			tupleTemplateFields[tupleTemplateFields.length - 2] = "*";
 			tupleTemplateFields[tupleTemplateFields.length - 1] = "*";
 
-			System.out.println("Template=" + Arrays.asList(tupleTemplateFields));
 
 			DepTuple template = DepTuple.createTuple(tupleTemplateFields);
 
@@ -255,11 +245,9 @@ public class DepSpaceClient implements DirectoryService {
 			}
 			ArrayList<String> result = new ArrayList<>();
 			for (DepTuple entry : children) {
-				System.out.println("File in Folder = " + Arrays.asList(entry.getFields()).toString());
 				result.add(entry.getFields()[entry.getFields().length - FileSystemEntry.POS_FILE_PATH].toString());
 
 			}
-			System.out.println("ReadDir " + path + " result = " + result.toString());
 
 			return result;
 		} catch (Exception e) {
@@ -416,7 +404,6 @@ public class DepSpaceClient implements DirectoryService {
 
 		public DepTuple toTuple() {
 			try {
-				System.out.println("ToTuple");
 				Object[] pathParts = null;
 
 				if (path.equals("/")) {
@@ -433,8 +420,6 @@ public class DepSpaceClient implements DirectoryService {
 
 				System.arraycopy(metadata, 0, tupleFields, 0, metadata.length);
 				System.arraycopy(pathParts, 0, tupleFields, metadata.length, pathParts.length);
-
-				System.out.println("ToTuple\n" + Arrays.asList(tupleFields).toString());
 
 				return DepTuple.createTuple(tupleFields);
 			} catch (Exception e) {

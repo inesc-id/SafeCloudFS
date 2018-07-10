@@ -79,30 +79,24 @@ public class AES {
 	 */
 	public static byte[] process(boolean encrypt, byte[] payload, SecretKey secretKey) {
 		try {
-//			byte[] result;
 			int opMode = encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE;
 			AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivData);
 
 			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding", new BouncyCastleProvider());
 			cipher.init(opMode, secretKey, ivSpec);
 
-
-			byte[] inputBuffer = new byte[ payload.length ];
+			byte[] inputBuffer = new byte[payload.length];
 			InputStream in = new ByteArrayInputStream(payload);
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 			int r = in.read(inputBuffer);
-			System.out.println("r = " + r);
 			while (r >= 0) {
 				byte[] outputUpdate = cipher.update(inputBuffer, 0, r);
 				out.write(outputUpdate);
 				r = in.read(inputBuffer);
 			}
 			byte[] outputFinalUpdate = cipher.doFinal();
-
-			System.out.println("outputFinalUpdate length = " + outputFinalUpdate.length);
-			out.write( outputFinalUpdate );
-			System.out.println("outputFinalUpdate length = " + outputFinalUpdate.length);
+			out.write(outputFinalUpdate);
 			return out.toByteArray();
 
 		} catch (Exception e) {
@@ -113,41 +107,4 @@ public class AES {
 
 	}
 
-//	public static void main(String[] args) throws InvalidVSSScheme {
-//
-//		byte[] bytes = "This is a new file\n".getBytes();
-//
-//		byte[][] e = ErasureCodes.encode(bytes, 3, 1);
-//
-//		byte[] d = ErasureCodes.decode(e, 3, 1);
-//
-//		System.out.println(
-//				Integer.BYTES + "Test: " + Arrays.equals(bytes, d) + " bytes =" + bytes.length + " d = " + d.length);
-//
-//		for (int i = 0; i < d.length; i++) {
-//			System.out.println("" + i + ": " + bytes[Math.min(i, bytes.length - 1)] + " - " + d[i]);
-//		}
-//
-//		SecretKey secretKey = getSecretKey();
-//		String message = "This is a new file\n";
-//		bytes = message.getBytes();
-//		byte[] encrypted = encrypt(bytes, secretKey);
-//
-//		System.out.println("Size encrypted, befor EC= " + encrypted.length);
-//
-//		System.out.println("Decrypted before EC=" + new String(decrypt(encrypted, secretKey)));
-//
-//		System.out.println("Le encrypted: " + new String(Base64.getEncoder().encode(encrypted)));
-//
-//		byte[][] encoded = ErasureCodes.encode(encrypted, 3, 1);
-//
-//		byte[] decoded = ErasureCodes.decode(encoded, 3, 1);
-//
-//		System.out.println("Le join: " + new String(Base64.getEncoder().encode(decoded)));
-//
-//		byte[] decrypted = decrypt(decoded, secretKey);
-//
-//		System.out.println("Decrypted = " + new String(decrypted));
-//	}
-//
 }

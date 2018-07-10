@@ -43,16 +43,14 @@ public class SafeCloudFS {
 		Level logLevel = options.debug.isEmpty() ? Level.WARNING : Level.parse(options.debug);
 		SafeCloudFSUtils.LOGGER.setLevel(logLevel);
 
-		SafeCloudFSProperties.MOUNTED_DIR = options.mountDirectory;
+		SafeCloudFSProperties.mountedDir = options.mountDirectory;
 
-		if(!new File(SafeCloudFSProperties.MOUNTED_DIR).exists()) {
-			new File(SafeCloudFSProperties.MOUNTED_DIR).mkdirs();
+		if(!new File(SafeCloudFSProperties.mountedDir).exists()) {
+			new File(SafeCloudFSProperties.mountedDir).mkdirs();
 		}
 
-		System.out.println("Mounted dir: " + new File(SafeCloudFSProperties.MOUNTED_DIR).getAbsolutePath());
-
 		try {
-			SafeCloudFSProperties.CLIENT_IP_ADDRESS = InetAddress.getLocalHost().getHostAddress();
+			SafeCloudFSProperties.clientIpAddress = InetAddress.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e1) {
 			System.err.println("Couldn't get client IP address.\n" + e1.getMessage());
 			System.exit(-1);
@@ -62,21 +60,57 @@ public class SafeCloudFS {
 
 
 
-		if (!options.zookeeperAddress.isEmpty()) {
-			System.out.println("Zookeeper");
+		if (SafeCloudFSProperties.zookeeperHost != null) {
 			directoryService = new ZookeeperClient();
 			safeCloudFSLog = new SafeCloudFSLogZookeeper();
-		} else if (!options.depspaceHostsFile.isEmpty()) {
-			System.out.println("DepsPace");
-			SafeCloudFSProperties.DEPSPACE_HOSTS_FILE = options.depspaceHostsFile;
-			directoryService = new DepSpaceClient(SafeCloudFSProperties.DEPSPACE_HOSTS_FILE);
+		} else if (SafeCloudFSProperties.depspaceHostsFile != null) {
+			directoryService = new DepSpaceClient(SafeCloudFSProperties.depspaceHostsFile);
 			safeCloudFSLog = new SafeCloudFSLogDepSpace();
 		} else {
-			System.out.println("Local");
 			directoryService = new LocalDirectoryService();
+		}
+
+		CacheService cacheService = null;
+		if (SafeCloudFSProperties.useCache) {
 
 
-			if (options.recovery) {
+			if (!new File(SafeCloudFSProperties.cacheDir).exists()) {
+				new File(SafeCloudFSProperties.cacheDir).mkdirs();
+			} else {
+				File cacheFolder = new File(SafeCloudFSProperties.cacheDir);
+				if (!cacheFolder.isDirectory()) {
+					System.err.println("Cache path is not a dir");
+					System.exit(-1);
+				}
+				File[] cacheFiles = cacheFolder.listFiles();
+				for (int i = 0; i < cacheFiles.length; i++) {
+					cacheFiles[i].delete();
+				}
+			}
+
+			boolean isCacheCiphered = false;
+			cacheService = new CacheService(SafeCloudFSProperties.cacheDir, isCacheCiphered, directoryService);
+
+		}
+
+		SafeCloudFSUtils.LOGGER.info("SafeCloudFS will ping clouds to check if they are accessible");
+		cloudBroker = CloudUtils.pingClouds();
+		SafeCloudFSUtils.LOGGER.info("All clouds are accessible.");
+
+		SafeCloudFSUtils.LOGGER.log(Level.INFO, "Started SafeCloudFS - Params: " + Arrays.asList(args).toString());
+
+		SafeCloudFileSystem safeCloudFileSystem = new SafeCloudFileSystem(SafeCloudFSProperties.mountedDir,
+				directoryService, cloudBroker, safeCloudFSLog, cacheService);
+
+		// MemoryFS fuse= new MemoryFS();
+
+		try {
+
+			// fuse.mount(Paths.get(RockFSConfig.MOUNTED_DIR), true, true);
+
+			safeCloudFileSystem.mount(true, true);
+
+			if (SafeCloudFSProperties.recoveryGui) {
 				SafeCloudFSLogViewer window = new SafeCloudFSLogViewer(directoryService, null);
 				EventQueue.invokeLater(new Runnable() {
 					public void run() {
@@ -95,50 +129,6 @@ public class SafeCloudFS {
 			}
 
 
-
-		}
-
-		CacheService cacheService = null;
-		if (!options.cache.isEmpty()) {
-			SafeCloudFSProperties.USE_CACHE = true;
-			SafeCloudFSProperties.CACHE_DIR = options.cache;
-
-			if (!new File(options.cache).exists()) {
-				new File(options.cache).mkdirs();
-			} else {
-				File cacheFolder = new File(options.cache);
-				if (!cacheFolder.isDirectory()) {
-					System.err.println("Cache path is not a dir");
-					System.exit(-1);
-				}
-				File[] cacheFiles = cacheFolder.listFiles();
-				for (int i = 0; i < cacheFiles.length; i++) {
-					cacheFiles[i].delete();
-				}
-			}
-
-			boolean isCacheCiphered = false;
-			cacheService = new CacheService(options.cache, isCacheCiphered, directoryService);
-
-		}
-
-		SafeCloudFSUtils.LOGGER.info("SafeCloudFS will ping clouds to check if they are accessible");
-		SafeCloudFSProperties.ACCOUNTS_FILE = options.cloudAccessKeysFile;
-		cloudBroker = CloudUtils.pingClouds();
-		SafeCloudFSUtils.LOGGER.info("All clouds are accessible.");
-
-		SafeCloudFSUtils.LOGGER.log(Level.INFO, "Started SafeCloudFS - Params: " + Arrays.asList(args).toString());
-
-		SafeCloudFileSystem safeCloudFileSystem = new SafeCloudFileSystem(SafeCloudFSProperties.MOUNTED_DIR,
-				directoryService, cloudBroker, safeCloudFSLog, cacheService);
-
-		// MemoryFS fuse= new MemoryFS();
-
-		try {
-
-			// fuse.mount(Paths.get(RockFSConfig.MOUNTED_DIR), true, true);
-
-			safeCloudFileSystem.mount(true, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -157,15 +147,10 @@ public class SafeCloudFS {
 		OptionsParser parser = OptionsParser.newOptionsParser(SafeCloudFSOptions.class);
 		parser.parseAndExitUponError(args);
 		SafeCloudFSOptions options = parser.getOptions(SafeCloudFSOptions.class);
-		if (options.cloudAccessKeysFile.isEmpty() || options.configFile.isEmpty() || options.mountDirectory.isEmpty()) {
+		if (options.configFile.isEmpty() || options.mountDirectory.isEmpty()) {
 			printUsage(parser);
 			System.exit(-1);
 		}
-		if (!options.depspaceHostsFile.isEmpty() && !options.zookeeperAddress.isEmpty()) {
-			System.err.println("At most one coordination service is allows.");
-			System.exit(-1);
-		}
-		System.out.println("RECOVERY=" + options.recovery);
 		return options;
 	}
 

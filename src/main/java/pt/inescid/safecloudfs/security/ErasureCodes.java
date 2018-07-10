@@ -92,26 +92,7 @@ public class ErasureCodes {
 
 		byte[] result = Arrays.copyOfRange(allBytes, BYTES_IN_INT, allBytes.length - padding);
 
-		System.out.println("Size: " + size + " padding: " + padding + " total: " + allBytes.length );
-
 		return result;
 	}
-
-	//
-	//
-	// public static void main(String[] args) {
-	// String message = "Hello, this is a test message";
-	// byte[] payload = message.getBytes();
-	// byte[][] encoded = encode(payload, 3, 1);
-	// for(int i = 0; i < encoded.length; i++) {
-	// System.out.println("Packet " + i + ": " + new String(encoded[i]));
-	// }
-	//
-	// System.out.println("\nNow lets decode\n");
-	//
-	// byte[] decoded = decode(encoded, 3, 1);
-	// System.out.println("Decoded: " + new String(decoded));
-	//
-	// }
 
 }

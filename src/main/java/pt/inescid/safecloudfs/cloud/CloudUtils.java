@@ -56,15 +56,15 @@ public class CloudUtils {
 		CloudAccount[] cloudAccounts = CloudAccounts.getAllAccounts();
 
 		if (cloudAccounts.length != 1) {
-			if (cloudAccounts.length < (3 * SafeCloudFSProperties.CLOUDS_F + 1)) {
-				System.err.println("To tolerate f=" + SafeCloudFSProperties.CLOUDS_F
-						+ " faulty clouds it is necessary to setup at least " + (3 * SafeCloudFSProperties.CLOUDS_F + 1)
+			if (cloudAccounts.length < (3 * SafeCloudFSProperties.cloudsF + 1)) {
+				System.err.println("To tolerate f=" + SafeCloudFSProperties.cloudsF
+						+ " faulty clouds it is necessary to setup at least " + (3 * SafeCloudFSProperties.cloudsF + 1)
 						+ " clouds in the accounts.json file");
 				System.exit(-1);
 			}
 		}
 
-		SafeCloudFSProperties.NUMBER_OF_CLOUDS = cloudAccounts.length;
+		SafeCloudFSProperties.cloudsN = cloudAccounts.length;
 
 		for (int i = 0; i < cloudAccounts.length; i++) {
 
@@ -97,13 +97,6 @@ public class CloudUtils {
 
 				ByteSource payload = ByteSource.wrap(byteArray);
 
-				// List Container Metadata
-				for (StorageMetadata resourceMd : blobStore.list()) {
-					if (containerName.equals(resourceMd.getName())) {
-						System.out.println(resourceMd);
-					}
-				}
-
 				// Add Blob
 				Blob blob = null;
 				try {
@@ -133,9 +126,6 @@ public class CloudUtils {
 							.unwrapApi(GoogleCloudStorageApi.class);
 					object = api.getObjectApi().getObject(containerName, blobName);
 				}
-				if (object != null) {
-					System.out.println(object);
-				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -153,11 +143,11 @@ public class CloudUtils {
 
 		CloudBroker cloudUploader = null;
 
-		if (SafeCloudFSProperties.NUMBER_OF_CLOUDS == 1) {
-			cloudUploader = new SingleCloudBroker(SafeCloudFSProperties.UPLOAD_METHOD,
+		if (SafeCloudFSProperties.cloudsN == 1) {
+			cloudUploader = new SingleCloudBroker(SafeCloudFSProperties.uploadMethod,
 					SafeCloudFSUtils.cloudContexts[0]);
 		} else {
-			cloudUploader = new MultipleCloudBroker(SafeCloudFSProperties.UPLOAD_METHOD,
+			cloudUploader = new MultipleCloudBroker(SafeCloudFSProperties.uploadMethod,
 					SafeCloudFSUtils.cloudContexts);
 		}
 

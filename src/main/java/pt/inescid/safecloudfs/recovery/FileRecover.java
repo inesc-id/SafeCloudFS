@@ -33,9 +33,6 @@ public class FileRecover {
 
 		for (int version = logEntries.get(0).version - 1; version >= logEntry.version; version-- ) {
 
-
-			System.out.println("I need this log entry: " + SafeCloudFSUtils.getLogEntryFileName(logEntry.fileNLink, version));
-
 			byte[] patch = SafeCloudFS.cloudBroker
 					.download(SafeCloudFSUtils.getLogEntryFileName(logEntry.fileNLink, version));
 			try {
@@ -47,7 +44,7 @@ public class FileRecover {
 		}
 
 		try {
-			FileOutputStream fos= new FileOutputStream(SafeCloudFSProperties.MOUNTED_DIR + "/" +  logEntry.filePath);
+			FileOutputStream fos= new FileOutputStream(SafeCloudFSProperties.mountedDir + "/" +  logEntry.filePath);
 			fos.write(fileBytes);
 			fos.close();
 		} catch (Exception e) {

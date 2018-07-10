@@ -12,7 +12,6 @@ import org.jclouds.azureblob.AzureBlobClient;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.domain.Location;
 import org.jclouds.googlecloudstorage.GoogleCloudStorageApi;
 import org.jclouds.googlecloudstorage.GoogleCloudStorageApiMetadata;
@@ -91,12 +90,7 @@ public class SingleCloudBroker implements CloudBroker {
 
 			ByteSource payload = ByteSource.wrap(byteArray);
 
-			// List Container Metadata
-			for (StorageMetadata resourceMd : blobStore.list()) {
-				if (account.containerName.equals(resourceMd.getName())) {
-					System.out.println(resourceMd);
-				}
-			}
+
 
 			// Add Blob
 			Blob blob = blobStore.blobBuilder(blobName).payload(payload).contentLength(payload.size()).build();
@@ -120,9 +114,6 @@ public class SingleCloudBroker implements CloudBroker {
 			} else if (apiMetadata instanceof GoogleCloudStorageApiMetadata) {
 				GoogleCloudStorageApi api = cloudContext.unwrapApi(GoogleCloudStorageApi.class);
 				object = api.getObjectApi().getObject(account.containerName, blobName);
-			}
-			if (object != null) {
-				System.out.println(object);
 			}
 
 		} catch (Exception e) {
@@ -156,7 +147,6 @@ public class SingleCloudBroker implements CloudBroker {
 
 	@Override
 	public void remove(String path) {
-		System.out.println("Will now remove file: " + path);
 		if (sync) {
 			removeSync(path);
 		} else {
@@ -205,12 +195,10 @@ public class SingleCloudBroker implements CloudBroker {
 	}
 
 	private void removeSync(String path) {
-		System.out.println("Sync");
 		removeFromCloud(path);
 	}
 
 	private void removeAsync(String path) {
-		System.out.println("Async");
 		try {
 			RemoveWorker removeWorker = new RemoveWorker(path);
 
@@ -282,14 +270,11 @@ public class SingleCloudBroker implements CloudBroker {
 
 			InputStream is = blob.getPayload().openStream();
 
-//			System.out.println("SIZE=" + object.getMetadata().getContentMetadata().getContentLength());
-
 
 			bytes = new byte[ size ];
 			is.read(bytes);
 			is.close();
 
-//			System.out.println("exists=" + object.getPayload().toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();

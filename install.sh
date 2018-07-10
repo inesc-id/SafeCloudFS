@@ -3,8 +3,8 @@ echo "#              RockFS installer               #"
 echo "###############################################"
 
 
-echo "Installing PVSS..."
-mvn install:install-file -Dfile=lib/pvss.jar -DgroupId=com.ufsc -DartifactId=pvss -Dversion=1.0-SNAPSHOT -Dpackaging=jar
+#echo "Installing PVSS..."
+#mvn install:install-file -Dfile=lib/pvss.jar -DgroupId=com.ufsc -DartifactId=pvss -Dversion=1.0-SNAPSHOT -Dpackaging=jar
 
 
 echo "Installing JReedSolEC..."

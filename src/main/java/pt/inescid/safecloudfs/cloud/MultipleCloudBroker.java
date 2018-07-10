@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.crypto.SecretKey;
 
@@ -18,7 +17,6 @@ import org.jclouds.azureblob.AzureBlobClient;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.domain.Location;
 import org.jclouds.googlecloudstorage.GoogleCloudStorageApi;
 import org.jclouds.googlecloudstorage.GoogleCloudStorageApiMetadata;
@@ -44,8 +42,8 @@ public class MultipleCloudBroker implements CloudBroker {
 	public boolean sync;
 	private BlobStoreContext[] cloudContexts;
 
-	final static Scheme scheme = Scheme.of(SafeCloudFSProperties.CLOUDS_N,
-			SafeCloudFSProperties.CLOUDS_N - SafeCloudFSProperties.CLOUDS_F);
+	final static Scheme scheme = Scheme.of(SafeCloudFSProperties.cloudsN,
+			SafeCloudFSProperties.cloudsN - SafeCloudFSProperties.cloudsF);
 
 	public MultipleCloudBroker(boolean sync, BlobStoreContext[] cloudContexts) {
 		this.sync = sync;
@@ -64,7 +62,7 @@ public class MultipleCloudBroker implements CloudBroker {
 
 	private void uploadAsync(String path, byte[] byteArray) {
 
-		if (SafeCloudFSProperties.FILESYSTEM_PROTOCOL == SafeCloudFSProperties.DEPSKY_A) {
+		if (SafeCloudFSProperties.fileSystemProtocol == SafeCloudFSProperties.DEPSKY_A) {
 			protocolAUploadAsync(path, byteArray);
 		} else {
 			protocolCAUploadAsync(path, byteArray);
@@ -102,7 +100,7 @@ public class MultipleCloudBroker implements CloudBroker {
 		final Map<Integer, byte[]> parts = scheme.split(secretKey.getEncoded());
 
 		// 3 - Now we break the data blocks using erasure codes
-		byte[][] dataBlocks = ErasureCodes.encode(encryptedByteArray, SafeCloudFSProperties.CLOUDS_N- SafeCloudFSProperties.CLOUDS_F, SafeCloudFSProperties.CLOUDS_F);
+		byte[][] dataBlocks = ErasureCodes.encode(encryptedByteArray, SafeCloudFSProperties.cloudsN- SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
 
 		try {
 			// Upload payload
@@ -110,8 +108,6 @@ public class MultipleCloudBroker implements CloudBroker {
 			for (int i = 0; i < dataBlocks.length; i++) {
 				workers[i] = new UploadWorker(i, path, dataBlocks[i]);
 
-				byte[] encodedBytes = Base64.getEncoder().encode(dataBlocks[i]);
-				System.out.println("encodedBytes["+i+"] = " + new String(encodedBytes));
 
 				new Thread(workers[i]).start();
 			}
@@ -131,7 +127,7 @@ public class MultipleCloudBroker implements CloudBroker {
 
 	private void uploadSync(String path, byte[] byteArray) {
 
-		if (SafeCloudFSProperties.FILESYSTEM_PROTOCOL == SafeCloudFSProperties.DEPSKY_A) {
+		if (SafeCloudFSProperties.fileSystemProtocol == SafeCloudFSProperties.DEPSKY_A) {
 			protocolAUploadSync(path, byteArray);
 		} else {
 			protocolCAUploadSync(path, byteArray);
@@ -166,15 +162,12 @@ public class MultipleCloudBroker implements CloudBroker {
 
 		final Map<Integer, byte[]> parts = scheme.split(secretKey.getEncoded());
 
-		Set<Integer> keys = parts.keySet();
-		for (Integer key : keys) {
-			System.out.println("k=" + key + " v=" + new String(Base64.getEncoder().encode(parts.get(key))));
-		}
+
 
 		// 3 - Now we break the data blocks using erasure codes
 		byte[][] dataBlocks = null;
 		try {
-			dataBlocks = ErasureCodes.encode(encryptedByteArray, SafeCloudFSProperties.CLOUDS_N- SafeCloudFSProperties.CLOUDS_F, SafeCloudFSProperties.CLOUDS_F);
+			dataBlocks = ErasureCodes.encode(encryptedByteArray, SafeCloudFSProperties.cloudsN- SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -185,8 +178,8 @@ public class MultipleCloudBroker implements CloudBroker {
 			for (int i = 0; i < dataBlocks.length; i++) {
 				uploadByteArray(i, path, dataBlocks[i]);
 
-				byte[] encodedBytes = Base64.getEncoder().encode(dataBlocks[i]);
-				System.out.println("encodedBytes["+i+"] = " + new String(encodedBytes));
+
+
 
 
 				Integer key = new Integer(i + 1);
@@ -221,12 +214,7 @@ public class MultipleCloudBroker implements CloudBroker {
 
 			ByteSource payload = ByteSource.wrap(byteArray);
 
-			// List Container Metadata
-			for (StorageMetadata resourceMd : blobStore.list()) {
-				if (account.containerName.equals(resourceMd.getName())) {
-					System.out.println(resourceMd);
-				}
-			}
+
 
 			// Add Blob
 			Blob blob = blobStore.blobBuilder(blobName).payload(payload).contentLength(payload.size()).build();
@@ -250,9 +238,6 @@ public class MultipleCloudBroker implements CloudBroker {
 			} else if (apiMetadata instanceof GoogleCloudStorageApiMetadata) {
 				GoogleCloudStorageApi api = cloudContexts[cloudId].unwrapApi(GoogleCloudStorageApi.class);
 				object = api.getObjectApi().getObject(account.containerName, blobName);
-			}
-			if (object != null) {
-				System.out.println(object);
 			}
 
 		} catch (Exception e) {
@@ -288,7 +273,6 @@ public class MultipleCloudBroker implements CloudBroker {
 
 	@Override
 	public void remove(String path) {
-		System.out.println("Will now remove file: " + path);
 		if (sync) {
 			removeSync(path);
 			removeSync(SafeCloudFSUtils.getKeyName(path));
@@ -343,12 +327,10 @@ public class MultipleCloudBroker implements CloudBroker {
 	}
 
 	private void removeSync(String path) {
-		System.out.println("Sync");
 		removeFromClouds(path);
 	}
 
 	private void removeAsync(String path) {
-		System.out.println("Async");
 		try {
 			RemoveWorker removeWorker = new RemoveWorker(path);
 
@@ -386,14 +368,13 @@ public class MultipleCloudBroker implements CloudBroker {
 			keyParts.put(new Integer(i+1), dowloadBlob(SafeCloudFSUtils.getKeyName(path), i));
 
 
-			byte[] encodedBytes = Base64.getEncoder().encode(dataParts[i]);
-			System.out.println("encodedBytes["+i+"] = " + new String(encodedBytes));
+
+
 
 		}
 
 		byte[] key = scheme.join(keyParts);
-		System.out.println("This is the key: " + new String(Base64.getEncoder().encode(key) ));
-		byte[] dataCiphered = ErasureCodes.decode(dataParts, SafeCloudFSProperties.CLOUDS_N- SafeCloudFSProperties.CLOUDS_F, SafeCloudFSProperties.CLOUDS_F);
+		byte[] dataCiphered = ErasureCodes.decode(dataParts, SafeCloudFSProperties.cloudsN- SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
 
 		return AES.decrypt(dataCiphered, AES.getSecretKeyFromBytes(key));
 	}
@@ -443,14 +424,9 @@ public class MultipleCloudBroker implements CloudBroker {
 
 			InputStream is = blob.getPayload().openStream();
 
-			// System.out.println("SIZE=" +
-			// object.getMetadata().getContentMetadata().getContentLength());
-
 			bytes = new byte[size];
 			is.read(bytes);
 			is.close();
-
-			// System.out.println("exists=" + object.getPayload().toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -458,7 +434,5 @@ public class MultipleCloudBroker implements CloudBroker {
 		}
 
 		return bytes;
-
-		// return null;
 	}
 }
