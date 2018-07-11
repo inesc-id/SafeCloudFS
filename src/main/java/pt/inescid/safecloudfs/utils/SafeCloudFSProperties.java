@@ -17,7 +17,7 @@ public class SafeCloudFSProperties {
 	private static final String PROPERTIES_FILE_SYSTEM_PROTOCOL = "filesystem.protocol";
 	private static final String PROPERTIES_UPLOAD_METHOD = "upload.method";
 	private static final String PROPERTIES_CLOUDS_F = "clouds.f";
-	private static final String PROPERTIES_DEPSPACE_HOSTS_FILE = "depspace.hosts.file";
+	private static final String PROPERTIES_DEPSPACE_HOSTS_FILE = "depspace.config";
 	private static final String PROPERTIES_ACCESS_KEYS_FILE = "access.keys.file";
 	private static final String PROPERTIES_CACHE_DIR = "cache.dir";
 	private static final String PROPERTIES_RECOVERY_GUI = "recovery.gui";

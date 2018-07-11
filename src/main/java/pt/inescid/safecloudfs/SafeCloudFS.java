@@ -61,13 +61,19 @@ public class SafeCloudFS {
 
 
 		if (SafeCloudFSProperties.zookeeperHost != null) {
+			SafeCloudFSUtils.LOGGER.info("Starting SafeCloudFS with Zookeeper.");
 			directoryService = new ZookeeperClient();
 			safeCloudFSLog = new SafeCloudFSLogZookeeper();
+
 		} else if (SafeCloudFSProperties.depspaceHostsFile != null) {
+			SafeCloudFSUtils.LOGGER.info("Starting SafeCloudFS with DepSpace.");
 			directoryService = new DepSpaceClient(SafeCloudFSProperties.depspaceHostsFile);
 			safeCloudFSLog = new SafeCloudFSLogDepSpace();
+
 		} else {
+			SafeCloudFSUtils.LOGGER.info("Starting SafeCloudFS with local coordination service.");
 			directoryService = new LocalDirectoryService();
+
 		}
 
 		CacheService cacheService = null;

@@ -6,9 +6,19 @@ SafeCloudFS provides two sets of security mechanisms to be integrated with the c
  * a *recovery service* capable of undoing unintended file operations without losing valid file operations that occurred after the attack; and
  * *device data security mechanisms* to safely store encryption keys reducing the probability of having the credentials compromised by attackers and to protect cached data.
 
+SafeCloudFS works with a single storage cloud or with several storage clouds (cloud-of-clouds). It is compatible with AWS-S3, BackBlaze B2, Google Cloud Storage, Microsoft AzureBlob and RackSpace Cloud Files. SafeCloudFS requires a coordination service an it is compatible with DepSpace and Zookeeper (to de implemented soon). For testing purposes it is also possible to test SafeCloudFS without a coordination service, in that case the metadata of the File System is kept in memory during execution and discarded afterwards. The figure below shows the system architecture of SafeCloudFS.
+
+![System architecture of SafeCloudFS][doc/img/safecloudfs-architecture.png]
+
+To perform recovery SafeCloudFS saves logs of file operations. Each log entry is composed by two parts, the data part, that goes to the storage clouds, and the metadata part, which goes to the coordination service. The figure below shows how loggin is done.
+
+![Logging file system operations in SafeCloudFS][doc/img/safecloudfs-logging.png]
+
+A video with an example of a file being recovered can be found [here](https://youtu.be/YisuzJhi28M).
+
+
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
@@ -34,20 +44,17 @@ sh install.sh
 
 ## Running SafeCloudFS
 
-Before executing SafeCloudFS fill the cofiguration files in `config` folder.
+Before executing SafeCloudFS edit the `safecloudfs.properties` file in `config` folder.
 
-Execution arguments are set in the pom.xml file.
+If you're planning to setup SafeCloudFS using DepSpace as the coordination service we recommend the following implementation of [DepSpace](https://github.com/inesc-id/depspacito).
+
+Default execution arguments are set in the pom.xml file.
 
 ### Arguments
 
 * --mount [path] - Directory to be mount
-* --config [path] - Config file path
-* --accessKeys [path] -  JSON file with cloud access keys file
-* --depspace [path] - Depspace hosts file
-* --zookeeper <IPAddress> - Zookeeper server address
+* --config [path] - Path for the SafeCloudFS configuration file (For example: config/safecloudfs.properties). More about the configuration file [here](doc/CONFIG_FILE.md).
 * -- debug <ALL, SIMPLE, WARNING, SEVERE, INFO, FINE, FINER, FINEST> - Execute with debug log messages
-* --recovery - Opens a GUI that allows intrusion recovery
-* --cache - Path to a folder to store cached files
 
 ### Running localy
 ```
@@ -56,11 +63,15 @@ mvn exec:java
 
 
 ### Running via Docker
+The Dockerfile in the root of the project allows to execute SafeCloudFS through a Debian VM. To build and run the VM execute the following commands.
+
 ```
 docker build -t safecloudfs .
 docker run -it --privileged --cap-add SYS_ADMIN --device /dev/fuse -i safecloudfs
 ```
+
 Then inside the container execute
+
 ```
 mvn exec:java
 ```
@@ -74,10 +85,10 @@ mvn exec:java
 
 ## Authors
 
-* **David R. Matos** - *Development* - [GitHub](https://github.com/davidmatos)
-* **Prof. Miguel Correia**
-* **Prof. Miguel L. Pardal**
-* **Prof. Georg Carle**
+* **[David R. Matos](https://github.com/davidmatos)**
+* **[Prof. Miguel Correia](https://github.com/mpcorreia)**
+* **[Prof. Miguel L. Pardal](https://github.com/miguelpardal)**
+* **[Prof. Georg Carle](https://www.net.in.tum.de/members/carle/)**
 
 ## License
 
@@ -85,7 +96,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Prof. Miguel Correia, Prof. Miguel L. Pardal and Prof. Georg Carle 
+* Prof. Miguel Correia, Prof. Miguel L. Pardal and Prof. Georg Carle
 * Alysson Bessani for the development of the PVSS lib used;
 * The contributors of the [SCFS](https://github.com/cloud-of-clouds/SCFS), [DepSky](https://github.com/cloud-of-clouds/depsky), [DepSpace](https://github.com/bft-smart/depspace) and [SMaRT-BFT](https://github.com/bft-smart/library) projects.
 

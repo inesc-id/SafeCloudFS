@@ -15,19 +15,14 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-
 		<jclouds.version>2.1.0</jclouds.version>
 
 		<config.file>config/safecloudfs.properties</config.file>
-<!-- 		<hosts.file>config/hosts.config</hosts.file> -->
-<!-- 		<access.keys.file>config/accounts.json</access.keys.file> -->
 		<dir>mount</dir>
-<!-- 		<cache.dir>/Users/davidmatos/cache</cache.dir> -->
 		<debug.level>ALL</debug.level>
 
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-
 	</properties>
 
 
@@ -131,19 +126,14 @@
 					<mainClass>pt.inescid.safecloudfs.SafeCloudFS</mainClass>
 					<executable>java</executable>
 					<arguments>
-
+						<argument>--config</argument>
+						<argument>${config.file}</argument>
 
 						<argument>--mount</argument>
 						<argument>${dir}</argument>
 
-
-
 						<argument>--debug</argument>
 						<argument>${debug.level}</argument>
-
-
-
-
 					</arguments>
 				</configuration>
 			</plugin>
