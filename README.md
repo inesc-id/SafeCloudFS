@@ -8,11 +8,11 @@ SafeCloudFS provides two sets of security mechanisms to be integrated with the c
 
 SafeCloudFS works with a single storage cloud or with several storage clouds (cloud-of-clouds). It is compatible with AWS-S3, BackBlaze B2, Google Cloud Storage, Microsoft AzureBlob and RackSpace Cloud Files. SafeCloudFS requires a coordination service an it is compatible with DepSpace and Zookeeper (to de implemented soon). For testing purposes it is also possible to test SafeCloudFS without a coordination service, in that case the metadata of the File System is kept in memory during execution and discarded afterwards. The figure below shows the system architecture of SafeCloudFS.
 
-![System architecture of SafeCloudFS][doc/img/safecloudfs-architecture.png]
+![System architecture of SafeCloudFS](doc/img/safecloudfs-architecture.png)
 
 To perform recovery SafeCloudFS saves logs of file operations. Each log entry is composed by two parts, the data part, that goes to the storage clouds, and the metadata part, which goes to the coordination service. The figure below shows how loggin is done.
 
-![Logging file system operations in SafeCloudFS][doc/img/safecloudfs-logging.png]
+![Logging file system operations in SafeCloudFS](doc/img/safecloudfs-logging.png)
 
 A video with an example of a file being recovered can be found [here](https://youtu.be/YisuzJhi28M).
 
