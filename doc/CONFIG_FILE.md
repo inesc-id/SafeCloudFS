@@ -10,8 +10,8 @@ The SafeCloud FS configuration file is a properties file (in the format property
     - `sync`:  it will lock until data was uploaded to the clouds
     - `async`: it will upload data concurrently with the execution of the file system, allowing several upload tasks to be performed at once
 
-* clouds.f=[`1 .. (N/3)-1`]
-    - the number of storage clouds that may fail arbitrarily. This number must be lower than a third of the total number of clouds present in the `config/accounts.json` file.
+* clouds.f=[`0 .. (N/3)-1`]
+    - the number of storage clouds that may fail arbitrarily. This number must be lower than a third of the total number of clouds present in the `config/accounts.json` file. If `f=0`then the protocol used will be `DepSky-A`.
 
 * depspace.config=[`/path/to/configDir`]
     - The location of the config folder of DepSpace. If this value is set then the zookeeper.host cannot be set, since there can only be a single coordination service for SafeCloudFS.
