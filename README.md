@@ -63,6 +63,9 @@ mvn exec:java
 
 
 ### Running via Docker
+
+If you intend to user DepSpace a the coordination service for SafeCloudFS, you need to start it first. Instructions on how to start DepSpace can be found [here](https://github.com/inesc-id/depspacito).
+
 The Dockerfile in the root of the project allows to execute SafeCloudFS through a Debian VM. To build and run the VM execute the following commands.
 
 ```
