@@ -5,6 +5,7 @@ import static com.google.common.collect.Iterables.contains;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.jclouds.ContextBuilder;
@@ -17,7 +18,6 @@ import org.jclouds.azureblob.AzureBlobClient;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.domain.Location;
 import org.jclouds.googlecloudstorage.GoogleCloudStorageApi;
 import org.jclouds.googlecloudstorage.GoogleCloudStorageApiMetadata;
@@ -34,9 +34,9 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 
 import pt.inescid.safecloudfs.utils.CloudAccounts;
+import pt.inescid.safecloudfs.utils.CloudAccounts.CloudAccount;
 import pt.inescid.safecloudfs.utils.SafeCloudFSProperties;
 import pt.inescid.safecloudfs.utils.SafeCloudFSUtils;
-import pt.inescid.safecloudfs.utils.CloudAccounts.CloudAccount;
 
 public class CloudUtils {
 	public static final Map<String, ApiMetadata> allApis = Maps.uniqueIndex(Apis.viewableAs(BlobStoreContext.class),
@@ -66,6 +66,10 @@ public class CloudUtils {
 
 		SafeCloudFSProperties.cloudsN = cloudAccounts.length;
 
+		if (SafeCloudFSUtils.cloudContexts == null) {
+			SafeCloudFSUtils.cloudContexts = new BlobStoreContext[CloudAccounts.getAccountsSize()];
+		}
+
 		for (int i = 0; i < cloudAccounts.length; i++) {
 
 			CloudAccount account = cloudAccounts[i];
@@ -73,11 +77,33 @@ public class CloudUtils {
 			checkArgument(contains(allKeys, account.provider), "provider %s not in supported list: %s",
 					account.provider, allKeys);
 
-			if (SafeCloudFSUtils.cloudContexts == null) {
-				SafeCloudFSUtils.cloudContexts = new BlobStoreContext[CloudAccounts.getAccountsSize()];
+
+
+
+
+
+
+
+
+			SafeCloudFSUtils.cloudContexts[i] = null;
+
+
+			if(account.endpoint != null) {
+				Properties overrides = new Properties();
+				overrides.setProperty("jclouds.endpoint",  account.endpoint);
+				overrides.setProperty("jclouds.trust-all-certs", "true");
+				overrides.setProperty("jclouds.relax-hostname", "true");
+
+				SafeCloudFSUtils.cloudContexts[i] = ContextBuilder.newBuilder(account.provider)
+						.credentials(account.identity, account.credential).endpoint(account.endpoint).overrides(overrides).buildView(BlobStoreContext.class);
+
+			}else {
+				SafeCloudFSUtils.cloudContexts[i] = ContextBuilder.newBuilder(account.provider)
+						.credentials(account.identity, account.credential).buildView(BlobStoreContext.class);
 			}
-			SafeCloudFSUtils.cloudContexts[i] = ContextBuilder.newBuilder(account.provider)
-					.credentials(account.identity, account.credential).buildView(BlobStoreContext.class);
+
+
+
 
 			BlobStore blobStore = null;
 			try {

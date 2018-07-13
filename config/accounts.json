@@ -3,6 +3,7 @@
 		"provider": "aws-s3",
 		"identity": "YOUR_AMAZON_IDENTITY",
 		"credential": "YOUR_AMAZON_CREDENTIAL",
-		"containerName": "safecloudfs1"
+		"containerName": "safecloudfs1",
+		"endpoint": "https://s3.amazonaws.com"
 	}
 ]

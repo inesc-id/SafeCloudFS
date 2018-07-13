@@ -65,6 +65,7 @@ public class CloudAccounts {
 		public String identity;
 		public String credential;
 		public String containerName;
+		public String endpoint;
 
 		public CloudAccount(String provider, String identity, String credential, String containerName) {
 			super();
@@ -73,6 +74,17 @@ public class CloudAccounts {
 			this.credential = credential;
 			this.containerName = containerName;
 		}
+
+
+		public CloudAccount(String provider, String identity, String credential, String containerName, String endpoint) {
+			super();
+			this.provider = provider;
+			this.identity = identity;
+			this.credential = credential;
+			this.containerName = containerName;
+			this.endpoint = endpoint;
+		}
+
 
 		public String getProvider() {
 			return provider;
@@ -106,6 +118,18 @@ public class CloudAccounts {
 			this.containerName = containerName;
 		}
 
+
+
+		public String getEndpoint() {
+			return endpoint;
+		}
+
+
+		public void setEndpoint(String endpoint) {
+			this.endpoint = endpoint;
+		}
+
+
 		@Override
 		public String toString() {
 			String result = "cloud_access_credential:{\n";
@@ -113,6 +137,7 @@ public class CloudAccounts {
 			result += "\t identity: " + identity + "\n";
 			result += "\t credential: " + credential + "\n";
 			result += "\t containerName: " + containerName + "\n";
+			result += "\t endpoint: " + endpoint + "\n";
 			result += "}";
 			return result;
 		}
