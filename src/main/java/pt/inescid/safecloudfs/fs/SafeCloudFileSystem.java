@@ -113,7 +113,10 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
 						this.directoryService.getNLink(path), 0, SafeCloudFSOperation.CREATE, mode);
-				this.log.log(logEntry);
+				if(this.log != null) {
+					this.log.log(logEntry);
+				}
+
 
 				return 0;
 			}
@@ -162,7 +165,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
 						this.directoryService.getNLink(path), 0, SafeCloudFSOperation.MKDIR, mode);
-				this.log.log(logEntry);
+				if(this.log != null) {
+					this.log.log(logEntry);
+				}
 
 				SafeCloudFSUtils.LOGGER.info("Directory " + path + " was created.");
 
@@ -293,7 +298,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
 					this.directoryService.getNLink(path), 0, SafeCloudFSOperation.RENAME, 0);
-			this.log.log(logEntry);
+			if(this.log != null) {
+				this.log.log(logEntry);
+			}
 
 			SafeCloudFSUtils.LOGGER.info("File " + path + " was renamed to " + newName);
 			return 0;
@@ -316,7 +323,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
 					this.directoryService.getNLink(path), 0, SafeCloudFSOperation.RMDIR, 0);
-			this.log.log(logEntry);
+			if(this.log != null) {
+				this.log.log(logEntry);
+			}
 			SafeCloudFSUtils.LOGGER.info("Directory " + path + " was removed.");
 
 			return 0;
@@ -369,7 +378,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path, nLink, 0,
 					SafeCloudFSOperation.UNLINK, 0);
-			this.log.log(logEntry);
+			if(this.log != null) {
+				this.log.log(logEntry);
+			}
 
 			if (this.cacheService != null) {
 				this.cacheService.deleteFromCache(nLink);
@@ -406,7 +417,12 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			long nLink = this.directoryService.getNLink(path);
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path, nLink, 0,
 					SafeCloudFSOperation.WRITE, 0);
-			int version = this.log.log(logEntry);
+
+			int version = 0;
+			if(this.log != null) {
+				version = this.log.log(logEntry);
+			}
+
 
 
 			logDelta(path, buf, size, offset, fi, version-1
@@ -476,10 +492,11 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	 */
 	private void logDelta(String path, Pointer buffer, long size, long offset, FuseFileInfo fi, int versionNumber) {
 		long nLink = this.directoryService.getNLink(path);
-		if (versionNumber == 0) {
+		if (versionNumber == 0 || this.log == null) {
 			//There is no delta o calculate since this is the first version of the file
 			return;
 		}
+
 
 		// first we get the previous version
 		byte[] previousVersion = null;
@@ -496,7 +513,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			buffer.put(0, previousVersion, 0, previousVersion.length);
 		}
 
-		// first, we move
+
 
 		byte[] currentVersion = new byte[toIntExact(size)];
 		for (long i = 0; i < size; i++) {
@@ -517,7 +534,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			}
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -530,7 +546,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
 					this.directoryService.getNLink(path), SafeCloudFSOperation.CHMOD, mode);
-			this.log.log(logEntry);
+			if(this.log != null) {
+				this.log.log(logEntry);
+			}
 
 			return 0;
 		} catch (Exception e) {
