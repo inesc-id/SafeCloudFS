@@ -45,7 +45,9 @@ public class SafeCloudFS {
 
 		SafeCloudFSProperties.mountedDir = options.mountDirectory;
 
-		if(!new File(SafeCloudFSProperties.mountedDir).exists()) {
+		SafeCloudFSUtils.LOGGER.info("Will mount dir: '" + SafeCloudFSProperties.mountedDir + "'");
+
+		if (!new File(SafeCloudFSProperties.mountedDir).exists()) {
 			new File(SafeCloudFSProperties.mountedDir).mkdirs();
 		}
 
@@ -57,8 +59,6 @@ public class SafeCloudFS {
 		}
 
 		SafeCloudFSProperties.loadPropertiesFile(options.configFile);
-
-
 
 		if (SafeCloudFSProperties.zookeeperHost != null) {
 			SafeCloudFSUtils.LOGGER.info("Starting SafeCloudFS with Zookeeper.");
@@ -78,7 +78,6 @@ public class SafeCloudFS {
 
 		CacheService cacheService = null;
 		if (SafeCloudFSProperties.useCache) {
-
 
 			if (!new File(SafeCloudFSProperties.cacheDir).exists()) {
 				new File(SafeCloudFSProperties.cacheDir).mkdirs();
@@ -130,10 +129,9 @@ public class SafeCloudFS {
 				});
 				safeCloudFSLog = new SafeCloudFSLogLocal(window, directoryService);
 				window.setLog(safeCloudFSLog);
-			}else {
+			} else {
 				safeCloudFSLog = new SafeCloudFSLogLocal(null, directoryService);
 			}
-
 
 		} catch (Exception e) {
 			e.printStackTrace();

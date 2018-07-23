@@ -79,6 +79,12 @@ Then inside the container execute
 mvn exec:java
 ```
 
+Or execute the following command to mount a specific dir located in /path/to/dir:
+
+```
+exec:java -Ddir=/path/to/dir
+```
+
 
 ## Built With
 
