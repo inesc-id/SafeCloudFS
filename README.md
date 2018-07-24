@@ -66,7 +66,9 @@ mvn exec:java
 
 If you intend to user DepSpace a the coordination service for SafeCloudFS, you need to start it first. Instructions on how to start DepSpace can be found [here](https://github.com/inesc-id/depspacito).
 
-The Dockerfile in the root of the project allows to execute SafeCloudFS through a Debian VM. To build and run the VM execute the following commands.
+Before running SafeCloudFS first edit `config/accounts.json` with the access credentials to the cloud providers and `config/safecloudfs.properties` with the configuration of SafeCloudFS (for example, to indicate the path to the config folder of DepSpace or the address of the Zookeeper servers).
+
+The Dockerfile in the root of the project allows to execute SafeCloudFS through a Debian VM. To build and run the VM execute the following commands:
 
 ```
 docker build -t safecloudfs .
@@ -82,7 +84,7 @@ mvn exec:java
 Or execute the following command to mount a specific dir located in /path/to/dir:
 
 ```
-exec:java -Ddir=/path/to/dir
+mvn exec:java -Ddir=/path/to/dir
 ```
 
 
