@@ -48,8 +48,8 @@ public class DepSpaceClient implements DirectoryService {
 			}
 
 		} catch (DepSpaceException e) {
-			System.err.println(e.getMessage());
-			System.exit(-1);
+			System.out.println("Couldn't connect to DepSpace. Will retry again.");
+
 		}
 	}
 
