@@ -20,7 +20,6 @@ public class LocalDirectoryService implements DirectoryService {
 	private static final String ST_NLINK = "st_nlink";
 	private static final String ST_MODE = "st_mode";
 	private static final String IS_DIR = "is_dir";
-	// private static final String CONTENT = "content";
 
 	private HashMap<String, HashMap<String, String>> directory;
 

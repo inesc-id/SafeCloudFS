@@ -11,6 +11,9 @@ public class SHA {
 	}
 
 	public static byte[] calculateHash(byte[] input) {
+		if(input == null) {
+			return null;
+		}
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("SHA-512");

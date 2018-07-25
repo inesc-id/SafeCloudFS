@@ -60,9 +60,7 @@ public class SingleCloudBroker implements CloudBroker {
 
 	public void uploadSync(String path, byte[] byteArray) {
 		try {
-			UploadWorker uploadWorker = new UploadWorker(path, byteArray);
-
-			new Thread(uploadWorker).start();
+			uploadByteArray(path, byteArray);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

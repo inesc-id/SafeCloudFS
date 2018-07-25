@@ -12,7 +12,7 @@ import com.google.devtools.common.options.OptionsParser;
 
 import pt.inescid.safecloudfs.cloud.CloudBroker;
 import pt.inescid.safecloudfs.cloud.CloudUtils;
-import pt.inescid.safecloudfs.directoryService.DepSpaceClient;
+import pt.inescid.safecloudfs.directoryService.DepSpaceDirectoryService;
 import pt.inescid.safecloudfs.directoryService.DirectoryService;
 import pt.inescid.safecloudfs.directoryService.LocalDirectoryService;
 import pt.inescid.safecloudfs.directoryService.ZookeeperClient;
@@ -45,7 +45,7 @@ public class SafeCloudFS {
 
 		SafeCloudFSProperties.mountedDir = options.mountDirectory;
 
-		SafeCloudFSUtils.LOGGER.info("Will mount dir: '" + SafeCloudFSProperties.mountedDir + "'");
+
 
 		if (!new File(SafeCloudFSProperties.mountedDir).exists()) {
 			new File(SafeCloudFSProperties.mountedDir).mkdirs();
@@ -67,9 +67,8 @@ public class SafeCloudFS {
 
 		} else if (SafeCloudFSProperties.depspaceHostsFile != null) {
 			SafeCloudFSUtils.LOGGER.info("Starting SafeCloudFS with DepSpace.");
-			directoryService = new DepSpaceClient(SafeCloudFSProperties.depspaceHostsFile);
-			safeCloudFSLog = new SafeCloudFSLogDepSpace();
-
+			directoryService = new DepSpaceDirectoryService(SafeCloudFSProperties.depspaceHostsFile);
+			safeCloudFSLog = null;
 		} else {
 			SafeCloudFSUtils.LOGGER.info("Starting SafeCloudFS with local coordination service.");
 			directoryService = new LocalDirectoryService();
@@ -107,12 +106,10 @@ public class SafeCloudFS {
 		SafeCloudFileSystem safeCloudFileSystem = new SafeCloudFileSystem(SafeCloudFSProperties.mountedDir,
 				directoryService, cloudBroker, safeCloudFSLog, cacheService);
 
-		// MemoryFS fuse= new MemoryFS();
 
 		try {
 
-			// fuse.mount(Paths.get(RockFSConfig.MOUNTED_DIR), true, true);
-
+			SafeCloudFSUtils.LOGGER.info("Will now mount dir: '" + SafeCloudFSProperties.mountedDir + "'");
 			safeCloudFileSystem.mount(true, true);
 
 			if (SafeCloudFSProperties.recoveryGui) {
@@ -130,7 +127,7 @@ public class SafeCloudFS {
 				safeCloudFSLog = new SafeCloudFSLogLocal(window, directoryService);
 				window.setLog(safeCloudFSLog);
 			} else {
-				safeCloudFSLog = new SafeCloudFSLogLocal(null, directoryService);
+				//safeCloudFSLog = new SafeCloudFSLogLocal(null, directoryService);
 			}
 
 		} catch (Exception e) {

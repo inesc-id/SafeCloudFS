@@ -421,13 +421,13 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			int version = 0;
 			if(this.log != null) {
 				version = this.log.log(logEntry);
+
+				logDelta(path, buf, size, offset, fi, version-1
+						//because the version given by this.log.log corresponds to the CURRENT file, not the previous one
+						);
+
 			}
 
-
-
-			logDelta(path, buf, size, offset, fi, version-1
-					//because the version given by this.log.log corresponds to the CURRENT file, not the previous one
-					);
 
 			return write(path, buf, size, offset, nLink);
 		} catch (Exception e) {
@@ -450,6 +450,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		for (long i = 0; i < bufSize; i++) {
 			bytes[toIntExact(i)] = buffer.getByte(i);
 		}
+
 
 		cloudBroker.upload(SafeCloudFSUtils.getFileName(nLink), bytes);
 

@@ -13,15 +13,16 @@ import depspace.general.DepTuple;
 import pt.inescid.safecloudfs.security.SHA;
 import pt.inescid.safecloudfs.utils.SafeCloudFSConstants;
 
-public class DepSpaceClient implements DirectoryService {
+public class DepSpaceDirectoryService implements DirectoryService {
 
+	private static final String FILE_SYSTEM_ENTRY_ID = "FILE_SYSTEM_ENTRY";
 
 
 	private DepSpaceAccessor accessor;
 
-	public DepSpaceClient(String hostsFile) {
+	public DepSpaceDirectoryService(String hostsFile) {
 
-		String name = "Demo Space";
+		String name = "SafeCloudFS";
 
 		DepSpaceConfiguration.init(hostsFile);
 
@@ -37,15 +38,26 @@ public class DepSpaceClient implements DirectoryService {
 		accessor = null;
 		try {
 			accessor = new DepSpaceAdmin(clientID).createSpace(prop);
-			DepTuple tuple = new FileSystemEntry("/", true, 0, 0, 0).toTuple();
-			accessor.out(tuple);
+
+
+			FileSystemEntry fse = new FileSystemEntry("/", true, 0, Calendar.getInstance().getTimeInMillis(), 1);
+
+			accessor.out(fse.toTuple());
 
 			DepTuple template = DepTuple.createTuple(new Object[] { "nlink", "*" });
+
 
 			if (accessor.rdAll(template, 0).isEmpty()) {
 				DepTuple tupleNlink = DepTuple.createTuple(new Object[] { "nlink", "1" });
 				accessor.out(tupleNlink);
 			}
+
+
+			Object[] temp  = fse.toTuple().getFields();
+			for(int i = 0; i < temp.length; i++) {
+				temp[i] = "*";
+			}
+
 
 		} catch (DepSpaceException e) {
 			System.out.println("Couldn't connect to DepSpace. Will retry again.");
@@ -104,7 +116,6 @@ public class DepSpaceClient implements DirectoryService {
 
 	@Override
 	public void mkfile(String path) {
-
 		try {
 			FileSystemEntry fse = new FileSystemEntry(path, false, 0, Calendar.getInstance().getTimeInMillis(),
 					getNewNLink());
@@ -223,18 +234,23 @@ public class DepSpaceClient implements DirectoryService {
 				pathParts = appendToBeginOfArray(pathParts, "/");
 			}
 
-			Object[] tupleTemplateFields = new Object[pathParts.length + FileSystemEntry.POS_FILE_PATH];
+			Object[] tupleTemplateFields = new Object[pathParts.length + 6 + 1];
 
-			System.arraycopy(pathParts, 0, tupleTemplateFields, 0, pathParts.length);
 
-			tupleTemplateFields[tupleTemplateFields.length - 5] = "*";
-			tupleTemplateFields[tupleTemplateFields.length - 4] = "*";
-			tupleTemplateFields[tupleTemplateFields.length - 3] = "*";
-			tupleTemplateFields[tupleTemplateFields.length - 2] = "*";
-			tupleTemplateFields[tupleTemplateFields.length - 1] = "*";
+			tupleTemplateFields[0] = FILE_SYSTEM_ENTRY_ID;
+			tupleTemplateFields[1] = "*";
+			tupleTemplateFields[2] = "*";
+			tupleTemplateFields[3] = "*";
+			tupleTemplateFields[4] = "*";
+			tupleTemplateFields[5] = "*";
 
+			System.arraycopy(pathParts, 0, tupleTemplateFields, 6, pathParts.length);
+
+			tupleTemplateFields[tupleTemplateFields.length-1] = "*";
 
 			DepTuple template = DepTuple.createTuple(tupleTemplateFields);
+
+
 
 			ArrayList<DepTuple> children = null;
 			try {
@@ -244,7 +260,12 @@ public class DepSpaceClient implements DirectoryService {
 			}
 			ArrayList<String> result = new ArrayList<>();
 			for (DepTuple entry : children) {
-				result.add(entry.getFields()[entry.getFields().length - FileSystemEntry.POS_FILE_PATH].toString());
+
+				if(entry.getFields().length <= 6+pathParts.length) {
+					continue;
+				}
+
+				result.add(entry.getFields()[6+pathParts.length].toString());
 
 			}
 
@@ -283,7 +304,7 @@ public class DepSpaceClient implements DirectoryService {
 
 		// this string will be present in each file system entry of the tuple space in
 		// order to identify that the tuple corresponds to a file system entry
-		private static final String FILE_SYSTEM_ENTRY_ID = "FILE_SYSTEM_ENTRY";
+
 
 		public String path = null;
 
@@ -370,12 +391,14 @@ public class DepSpaceClient implements DirectoryService {
 
 				}
 
-				Object[] nullValues = new Object[] { "*", "*", "*", "*", "*" };
+				Object[] nullValues = new Object[] { FILE_SYSTEM_ENTRY_ID, "*", "*", "*", "*", "*" };
 
 				Object[] tupleFields = new Object[pathParts.length + nullValues.length];
 
-				System.arraycopy(pathParts, 0, tupleFields, 0, pathParts.length);
-				System.arraycopy(nullValues, 0, tupleFields, pathParts.length, nullValues.length);
+				System.arraycopy(nullValues, 0, tupleFields, 0, nullValues.length);
+				System.arraycopy(pathParts, 0, tupleFields, nullValues.length, pathParts.length);
+
+
 
 				DepTuple template = DepTuple.createTuple(tupleFields);
 
