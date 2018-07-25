@@ -1,0 +1,23 @@
+version: '3.3'
+
+services:
+
+  safecloudfs:
+    build: 
+      context: ./SafeCloudFS
+      args:
+        cap_add: ALL
+        device: /dev/fuse
+    privileged: true
+    command: bash -c "sleep 15 && echo \"0 depspacito 11000\" > /usr/src/safecloudfs/config/hosts.config && mvn exec:java"
+    stdin_open: true
+    tty: true  
+    depends_on:
+      - "depspacito"
+
+  depspacito:
+    build: ./DepSpacito
+    command: bash -c "sh build.sh && mvn exec:java"
+    ports: 
+      - "11000:11000"
+
