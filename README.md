@@ -88,6 +88,17 @@ mvn exec:java -Ddir=/path/to/dir
 ```
 
 
+### Running via Docker compose
+
+First, edit the `accounts.json` and `safecloudfs.properties` files in the `docker-compose/SafeCloudFS` folder.
+
+Then, inside the folder `docker-compose`, execute:
+
+```
+docker-compose up
+```
+
+
 ## Built With
 
 * [Google](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
