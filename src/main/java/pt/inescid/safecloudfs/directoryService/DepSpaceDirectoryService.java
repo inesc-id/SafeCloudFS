@@ -91,17 +91,34 @@ public class DepSpaceDirectoryService implements DirectoryService {
 	public void rmdir(String path) {
 		try {
 
-			Object[] pathParts = path.split("/");
-			pathParts = appendToBeginOfArray(pathParts, "/");
-			for (int i = 0; i < SafeCloudFSConstants.MAX_DEPTH; i++) {
+			Object[] pathPartsTemp = path.split("/");
+			Object[]pathParts = new Object[pathPartsTemp.length-1];
+			System.arraycopy(pathPartsTemp, 1, pathParts, 0, pathParts.length);
 
-				Object[] templateFields = new Object[SafeCloudFSConstants.MAX_DEPTH + FileSystemEntry.POS_FILE_PATH];
-				System.arraycopy(pathParts, 0, templateFields, 0, pathParts.length);
-				for (int j = 0; j < i; j++) {
+			pathParts = appendToBeginOfArray(pathParts, "/");
+
+
+
+			for (int i = 6+pathParts.length; i < SafeCloudFSConstants.MAX_DEPTH+6; i++) {
+
+				Object[] templateFields = new Object[i];
+
+				templateFields[0] = FILE_SYSTEM_ENTRY_ID;
+				templateFields[1] = "*";
+				templateFields[2] = "*";
+				templateFields[3] = "*";
+				templateFields[4] = "*";
+				templateFields[5] = "*";
+
+				System.arraycopy(pathParts, 0, templateFields, 6, pathParts.length);
+				for (int j = 6+pathParts.length; j < i; j++) {
 					templateFields[j] = "*";
 				}
 
 				DepTuple template = DepTuple.createTuple(templateFields);
+
+
+
 				try {
 					accessor.inAll(template);
 				} catch (DepSpaceException e) {

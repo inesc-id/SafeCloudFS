@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -57,6 +58,9 @@ public class AES {
 	 * @throws Exception
 	 */
 	public static byte[] encrypt(byte[] plainBytes, SecretKey secretKey) {
+		if (plainBytes == null || secretKey == null) {
+			return null;
+		}
 		return process(true, plainBytes, secretKey);
 	}
 
@@ -78,7 +82,18 @@ public class AES {
 	 * @throws Exception
 	 */
 	public static byte[] process(boolean encrypt, byte[] payload, SecretKey secretKey) {
+		byte[] prefix = "SAFECLOUDFS_PREFIX".getBytes();
 		try {
+			if (encrypt) {
+
+				byte[] payloadWithPrefix = new byte[payload.length + prefix.length];
+
+				System.arraycopy(prefix, 0, payloadWithPrefix, 0, prefix.length);
+				System.arraycopy(payload, 0, payloadWithPrefix, prefix.length, payload.length);
+
+				payload = payloadWithPrefix;
+			}
+
 			int opMode = encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE;
 			AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivData);
 
@@ -97,7 +112,19 @@ public class AES {
 			}
 			byte[] outputFinalUpdate = cipher.doFinal();
 			out.write(outputFinalUpdate);
-			return out.toByteArray();
+
+			byte[] result = out.toByteArray();
+
+			if (!encrypt) {
+
+				byte[] resultWithoutPrefix = new byte[result.length - prefix.length];
+
+				System.arraycopy(result,  prefix.length, resultWithoutPrefix, 0, result.length-prefix.length);
+				result = resultWithoutPrefix;
+
+
+			}
+			return result;
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -106,5 +133,24 @@ public class AES {
 		return null;
 
 	}
+
+//	public static void main(String[] args) {
+//
+//		SecretKey sk = getSecretKey();
+//		String message = "ola";
+//
+//		System.out.println("Message clear: " + message);
+//
+//
+//
+//
+//		byte[] enc = process(true, message.getBytes(), sk);
+//
+//		System.out.println("Message enc: " + Base64.getEncoder().encodeToString(enc));
+//
+//		byte[] dec = process(false, enc, sk);
+//
+//		System.out.println("Message dec: " + new String(dec));
+//	}
 
 }

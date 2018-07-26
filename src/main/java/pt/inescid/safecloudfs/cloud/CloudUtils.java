@@ -71,6 +71,7 @@ public class CloudUtils {
 		}
 
 		for (int i = 0; i < cloudAccounts.length; i++) {
+			containerName = "safecloudfsping" + i;
 
 			CloudAccount account = cloudAccounts[i];
 

@@ -446,6 +446,8 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			this.contents.put(path, ByteBuffer.allocate(toIntExact(bufSize)));
 		}
 
+		
+		
 		byte[] bytes = new byte[toIntExact(bufSize)];
 		for (long i = 0; i < bufSize; i++) {
 			bytes[toIntExact(i)] = buffer.getByte(i);
