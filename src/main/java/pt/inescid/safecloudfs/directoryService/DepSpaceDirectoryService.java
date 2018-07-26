@@ -443,6 +443,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				System.arraycopy(metadata, 0, tupleFields, 0, metadata.length);
 				System.arraycopy(pathParts, 0, tupleFields, metadata.length, pathParts.length);
 
+
 				return DepTuple.createTuple(tupleFields);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -453,7 +454,17 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 		public void delete() {
 			try {
-				accessor.in(this.toTuple());
+
+				DepTuple depTuple = this.toTuple();
+				Object[] fields = depTuple.getFields();
+				for(int i = 0; i < fields.length; i++) {
+					if(fields[i] == null) {
+						fields[i] = "*";
+					}
+				}
+
+				depTuple.setFields(fields);
+				accessor.in(depTuple);
 			} catch (DepSpaceException e) {
 				System.err.println(e.getMessage());
 				System.exit(-1);
