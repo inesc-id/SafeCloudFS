@@ -94,6 +94,9 @@ public class CloudUtils {
 				overrides.setProperty("jclouds.endpoint",  account.endpoint);
 				overrides.setProperty("jclouds.trust-all-certs", "true");
 				overrides.setProperty("jclouds.relax-hostname", "true");
+				overrides.setProperty("jclouds.s3.virtual-host-buckets", "false");
+				overrides.setProperty("s3.endpoint", account.endpoint);
+
 
 				SafeCloudFSUtils.cloudContexts[i] = ContextBuilder.newBuilder(account.provider)
 						.credentials(account.identity, account.credential).endpoint(account.endpoint).overrides(overrides).buildView(BlobStoreContext.class);
