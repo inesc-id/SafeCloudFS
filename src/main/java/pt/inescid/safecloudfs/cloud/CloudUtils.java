@@ -94,8 +94,12 @@ public class CloudUtils {
 				overrides.setProperty("jclouds.endpoint",  account.endpoint);
 				overrides.setProperty("jclouds.trust-all-certs", "true");
 				overrides.setProperty("jclouds.relax-hostname", "true");
-				overrides.setProperty("jclouds.s3.virtual-host-buckets", "false");
-				overrides.setProperty("s3.endpoint", account.endpoint);
+
+
+
+
+				overrides.setProperty("swift.endpoint", "175.20.0.12:80");
+
 
 
 				SafeCloudFSUtils.cloudContexts[i] = ContextBuilder.newBuilder(account.provider)
@@ -119,6 +123,8 @@ public class CloudUtils {
 				if (apiMetadata instanceof SwiftApiMetadata) {
 					location = Iterables.getFirst(blobStore.listAssignableLocations(), null);
 				}
+
+
 				blobStore.createContainerInLocation(location, containerName);
 
 				String blobName = "ping";

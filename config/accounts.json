@@ -1,9 +1,9 @@
 [
 	{
-		"provider": "aws-s3",
-		"identity": "YOUR_AMAZON_IDENTITY",
-		"credential": "YOUR_AMAZON_CREDENTIAL",
+		"provider": "s3",
+		"identity": "ak",
+		"credential": "sk",
 		"containerName": "safecloudfs1",
-		"endpoint": "https://s3.amazonaws.com"
+		"endpoint": "http://175.20.0.12:80"
 	}
 ]
