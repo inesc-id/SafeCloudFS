@@ -9,15 +9,17 @@ import java.util.ArrayList;
  */
 public interface DirectoryService {
 
+	public void init(long uid, long gid) ;
+
 	public void mv(String originPath, String destinationPath);
 
 	public void rm(String path);
 
 	public void rmdir(String path);
 
-	public void mkfile(String path);
+	public void mkfile(String path, long uid, long gid);
 
-	public void mkdir(String path);
+	public void mkdir(String path, long uid, long gid);
 
 	public long getNLink(String path);
 

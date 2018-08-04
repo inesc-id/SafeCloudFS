@@ -24,6 +24,8 @@ public class SafeCloudFSProperties {
 	private static final String PROPERTIES_ZOOKEEPER_HOST = "zookeeper.host";
 
 
+	public static long UID = 0;
+	public static long GID = 0;
 
 
 	//Execution properties of the file system

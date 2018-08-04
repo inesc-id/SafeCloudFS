@@ -20,6 +20,9 @@
 		<config.file>config/safecloudfs.properties</config.file>
 		<dir>mount</dir>
 		<debug.level>ALL</debug.level>
+
+		<uid>501</uid>
+		<gid>20</gid>
 	</properties>
 
 
@@ -132,6 +135,12 @@
 
 						<argument>--debug</argument>
 						<argument>${debug.level}</argument>
+
+						<argument>--uid</argument>
+						<argument>${uid}</argument>
+
+						<argument>--gid</argument>
+						<argument>${gid}</argument>
 					</arguments>
 				</configuration>
 			</plugin>

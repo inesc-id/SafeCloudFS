@@ -45,6 +45,8 @@ public class SafeCloudFS {
 
 		SafeCloudFSProperties.mountedDir = options.mountDirectory;
 
+		SafeCloudFSProperties.UID = options.uid;
+		SafeCloudFSProperties.GID = options.gid;
 
 
 		if (!new File(SafeCloudFSProperties.mountedDir).exists()) {

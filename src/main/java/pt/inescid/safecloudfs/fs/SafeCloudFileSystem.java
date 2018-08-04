@@ -29,6 +29,7 @@ import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
+import ru.serce.jnrfuse.struct.Flock;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
@@ -53,8 +54,13 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		this.contents = new HashMap<>();
 		this.mountFolder = mountFolder;
 		this.directoryService = directoryService;
+		//this.directoryService.init(SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
+
+		this.directoryService.init(SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
 		this.log = log;
 
+
+		System.out.println("uid=" + SafeCloudFSProperties.UID + " gid=" +  SafeCloudFSProperties.GID);
 	}
 
 	public SafeCloudFileSystem(String mountFolder, DirectoryService directoryService, CloudBroker cloudUploader,
@@ -64,8 +70,12 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		this.contents = new HashMap<>();
 		this.mountFolder = mountFolder;
 		this.directoryService = directoryService;
+		this.directoryService.init(SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
 		this.log = log;
 		this.cacheService = cacheService;
+
+		System.out.println("uid=" + SafeCloudFSProperties.UID + " gid=" +  SafeCloudFSProperties.GID);
+
 	}
 
 	public void mount(boolean blocking, boolean debug) {
@@ -107,11 +117,11 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			if (this.directoryService.isDir(parentPath)) {
 
-				this.directoryService.mkfile(path);
+				this.directoryService.mkfile(path, SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
 
 				this.contents.put(path, ByteBuffer.allocate(0));
 
-				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
+				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 						this.directoryService.getNLink(path), 0, SafeCloudFSOperation.CREATE, mode);
 				if(this.log != null) {
 					this.log.log(logEntry);
@@ -164,9 +174,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			}
 			String parentPath = this.directoryService.getParent(path);
 			if (this.directoryService.isDir(parentPath)) {
-				this.directoryService.mkdir(path);
+				this.directoryService.mkdir(path, SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
 
-				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
+				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 						this.directoryService.getNLink(path), 0, SafeCloudFSOperation.MKDIR, mode);
 				if(this.log != null) {
 					this.log.log(logEntry);
@@ -217,16 +227,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		buffer.put(0, bytes, 0, bytes.length);
 		return bytes.length;
 
-		// int bytesToRead = (int) Math.min(contents.get(path).capacity() - offset,
-		// size);
-		// byte[] bytesRead = new byte[bytesToRead];
-		// synchronized (this) {
-		// contents.get(path).position((int) offset);
-		// contents.get(path).get(bytesRead, 0, bytesToRead);
-		// buffer.put(0, bytesRead, 0, bytesToRead);
-		// contents.get(path).position(0); // Rewind
-		// }
-		// return bytesToRead;
+
 	}
 
 	@Override
@@ -299,7 +300,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			}
 			this.directoryService.mv(path, newName);
 
-			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
+			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 					this.directoryService.getNLink(path), 0, SafeCloudFSOperation.RENAME, 0);
 			if(this.log != null) {
 				this.log.log(logEntry);
@@ -324,7 +325,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			}
 			this.directoryService.rmdir(path);
 
-			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
+			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 					this.directoryService.getNLink(path), 0, SafeCloudFSOperation.RMDIR, 0);
 			if(this.log != null) {
 				this.log.log(logEntry);
@@ -379,7 +380,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			long nLink = this.directoryService.getNLink(path);
 
-			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path, nLink, 0,
+			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path, nLink, 0,
 					SafeCloudFSOperation.UNLINK, 0);
 			if(this.log != null) {
 				this.log.log(logEntry);
@@ -418,7 +419,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			}
 
 			long nLink = this.directoryService.getNLink(path);
-			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path, nLink, 0,
+			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path, nLink, 0,
 					SafeCloudFSOperation.WRITE, 0);
 
 			int version = 0;
@@ -550,7 +551,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		try {
 			this.directoryService.setMode(path, mode);
 
-			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, getContext().uid.get(), path,
+			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 					this.directoryService.getNLink(path), SafeCloudFSOperation.CHMOD, mode);
 			if(this.log != null) {
 				this.log.log(logEntry);
@@ -576,6 +577,32 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	public int chown(String path, long uid, long gid) {
 		return this.directoryService.chown(path, uid, gid);
 	}
+
+	@Override
+	public int getxattr(String path, String name, Pointer value, long size) {
+		// TODO Auto-generated method stub
+		return super.getxattr(path, name, value, size);
+	}
+
+	@Override
+	public int listxattr(String path, Pointer list, long size) {
+		// TODO Auto-generated method stub
+		return super.listxattr(path, list, size);
+	}
+
+	@Override
+	public int access(String path, int mask) {
+		// TODO Auto-generated method stub
+		return super.access(path, mask);
+	}
+
+	@Override
+	public int lock(String path, FuseFileInfo fi, int cmd, Flock flock) {
+		// TODO Auto-generated method stub
+		return super.lock(path, fi, cmd, flock);
+	}
+
+
 
 
 

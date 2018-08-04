@@ -14,3 +14,5 @@ echo "Installing SafeCloudFS..."
 mvn compile
 
 echo "Finished installing"
+
+

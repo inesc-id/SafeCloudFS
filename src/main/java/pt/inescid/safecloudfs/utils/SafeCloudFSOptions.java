@@ -32,6 +32,20 @@ public class SafeCloudFSOptions extends OptionsBase {
 
 
 
+	@Option(
+			name = "uid",
+			abbrev = 'u',
+			help = "Id of the current user.",
+			defaultValue = "0")
+	public long uid;
+
+
+	@Option(
+			name = "gid",
+			abbrev = 'g',
+			help = "Id of the group of the current user.",
+			defaultValue = "0")
+	public long gid;
 
 
 }

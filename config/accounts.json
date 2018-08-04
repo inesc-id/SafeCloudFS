@@ -4,6 +4,6 @@
 		"identity": "ak",
 		"credential": "sk",
 		"containerName": "safecloudfs1",
-		"endpoint": "http://175.20.0.12:80"
+		"endpoint": "http://127.0.0.1:8069"
 	}
 ]

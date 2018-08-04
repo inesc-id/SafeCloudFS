@@ -127,7 +127,7 @@ public class LocalDirectoryService implements DirectoryService {
 	}
 
 	@Override
-	public void mkfile(String path) {
+	public void mkfile(String path, long uid, long gid) {
 		HashMap<String, String> node = new HashMap<String, String>();
 		node.put(IS_DIR, new Boolean(false).toString());
 		node.put(ST_NLINK, this.currentNLink + "");
@@ -139,7 +139,7 @@ public class LocalDirectoryService implements DirectoryService {
 	}
 
 	@Override
-	public void mkdir(String path) {
+	public void mkdir(String path, long uid, long gid) {
 		HashMap<String, String> node = new HashMap<String, String>();
 		node.put(IS_DIR, new Boolean(true).toString());
 		this.directory.put(path, node);
@@ -218,6 +218,12 @@ public class LocalDirectoryService implements DirectoryService {
 	public long getGid(String path) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public void init(long uid, long gid) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

@@ -76,13 +76,13 @@ public class ZookeeperClient implements DirectoryService {
 
 
 	@Override
-	public void mkdir(String path) {
+	public void mkdir(String path, long uid, long gid) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void mkfile(String path) {
+	public void mkfile(String path, long uid, long gid) {
 		// TODO Auto-generated method stub
 
 	}
@@ -115,6 +115,12 @@ public class ZookeeperClient implements DirectoryService {
 	public long getGid(String path) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public void init(long uid, long gid) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

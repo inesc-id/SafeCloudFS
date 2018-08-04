@@ -78,13 +78,13 @@ docker run -it --privileged --cap-add SYS_ADMIN --device /dev/fuse -i safecloudf
 Then inside the container execute
 
 ```
-mvn exec:java
+sh run.sh
 ```
 
 Or execute the following command to mount a specific dir located in /path/to/dir:
 
 ```
-mvn exec:java -Ddir=/path/to/dir
+sh run.sh /path/to/dir
 ```
 
 
