@@ -35,4 +35,9 @@ public interface DirectoryService {
 
 	public boolean isCachedFileValid(long nLink, byte[] hash);
 
+	public int chown(String path, long uid, long gid);
+
+	public long getUid(String path);
+
+	public long getGid(String path);
 }

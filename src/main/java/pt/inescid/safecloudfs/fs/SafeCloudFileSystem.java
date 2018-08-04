@@ -139,9 +139,12 @@ public class SafeCloudFileSystem extends FuseStubFS {
 					stat.st_size.set(contents.get(path).capacity());
 				}
 
-				stat.st_uid.set(getContext().uid.get());
-				stat.st_gid.set(getContext().gid.get());
+				stat.st_uid.set(this.directoryService.getUid(path));
+				stat.st_gid.set(this.directoryService.getGid(path));
 
+
+				System.out.println("UserID = " + this.directoryService.getUid(path));
+				System.out.println("UserGID = " + this.directoryService.getUid(path));
 
 
 				return 0;
@@ -446,8 +449,8 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			this.contents.put(path, ByteBuffer.allocate(toIntExact(bufSize)));
 		}
 
-		
-		
+
+
 		byte[] bytes = new byte[toIntExact(bufSize)];
 		for (long i = 0; i < bufSize; i++) {
 			bytes[toIntExact(i)] = buffer.getByte(i);
@@ -568,5 +571,12 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 		return super.setxattr(path, name, value, size, flags);
 	}
+
+	@Override
+	public int chown(String path, long uid, long gid) {
+		return this.directoryService.chown(path, uid, gid);
+	}
+
+
 
 }

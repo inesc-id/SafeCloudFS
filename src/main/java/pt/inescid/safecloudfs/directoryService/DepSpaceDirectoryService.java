@@ -18,6 +18,17 @@ public class DepSpaceDirectoryService implements DirectoryService {
 	private static final String FILE_SYSTEM_ENTRY_ID = "FILE_SYSTEM_ENTRY";
 
 
+
+	public final static int POS_HASH = 1;
+	public final static int POS_N_LINK = 2;
+	public final static int POS_IS_DIR = 3;
+	public final static int POS_MODE = 4;
+	public final static int POS_TS = 5;
+	public final static int POS_UID = 6;
+	public final static int POS_GID = 7;
+	public final static int POS_FILE_PATH = 8; //it starts here, but it will go on
+
+
 	private DepSpaceAccessor accessor;
 
 	public DepSpaceDirectoryService(String hostsFile) {
@@ -99,7 +110,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 
 
-			for (int i = 6+pathParts.length; i < SafeCloudFSConstants.MAX_DEPTH+6; i++) {
+			for (int i = POS_FILE_PATH+pathParts.length; i < SafeCloudFSConstants.MAX_DEPTH+POS_FILE_PATH; i++) {
 
 				Object[] templateFields = new Object[i];
 
@@ -109,9 +120,11 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				templateFields[3] = "*";
 				templateFields[4] = "*";
 				templateFields[5] = "*";
+				templateFields[6] = "*";
+				templateFields[7] = "*";
 
-				System.arraycopy(pathParts, 0, templateFields, 6, pathParts.length);
-				for (int j = 6+pathParts.length; j < i; j++) {
+				System.arraycopy(pathParts, 0, templateFields, POS_FILE_PATH, pathParts.length);
+				for (int j = POS_FILE_PATH+pathParts.length; j < i; j++) {
 					templateFields[j] = "*";
 				}
 
@@ -251,7 +264,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				pathParts = appendToBeginOfArray(pathParts, "/");
 			}
 
-			Object[] tupleTemplateFields = new Object[pathParts.length + 6 + 1];
+			Object[] tupleTemplateFields = new Object[pathParts.length + POS_FILE_PATH + 1];
 
 
 			tupleTemplateFields[0] = FILE_SYSTEM_ENTRY_ID;
@@ -260,8 +273,10 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			tupleTemplateFields[3] = "*";
 			tupleTemplateFields[4] = "*";
 			tupleTemplateFields[5] = "*";
+			tupleTemplateFields[6] = "*";
+			tupleTemplateFields[7] = "*";
 
-			System.arraycopy(pathParts, 0, tupleTemplateFields, 6, pathParts.length);
+			System.arraycopy(pathParts, 0, tupleTemplateFields, POS_FILE_PATH, pathParts.length);
 
 			tupleTemplateFields[tupleTemplateFields.length-1] = "*";
 
@@ -278,11 +293,11 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			ArrayList<String> result = new ArrayList<>();
 			for (DepTuple entry : children) {
 
-				if(entry.getFields().length <= 6+pathParts.length) {
+				if(entry.getFields().length <= POS_FILE_PATH+pathParts.length) {
 					continue;
 				}
 
-				result.add(entry.getFields()[6+pathParts.length].toString());
+				result.add(entry.getFields()[POS_FILE_PATH+pathParts.length].toString());
 
 			}
 
@@ -331,12 +346,10 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		public Number mode;
 		public long ts;
 
-		private final static int POS_HASH = 1;
-		private final static int POS_N_LINK = 2;
-		private final static int POS_IS_DIR = 3;
-		private final static int POS_MODE = 4;
-		private final static int POS_TS = 5;
-		private final static int POS_FILE_PATH = 6; //it starts here, but it will go on
+		public long uid;
+		public long gid;
+
+
 
 		public FileSystemEntry(String path, boolean isDir, Number mode, long ts, long nlink) {
 			if (path.equals("/")) {
@@ -521,4 +534,31 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		FileSystemEntry entry = new FileSystemEntry(nLink);
 		return SHA.verifyHash(entry.hash, hash);
 	}
+
+	@Override
+	public int chown(String path, long uid, long gid) {
+		try {
+			FileSystemEntry entry = new FileSystemEntry(path);
+			FileSystemEntry newEntry = new FileSystemEntry(path);
+			newEntry.uid = uid;
+			newEntry.gid = uid;
+			entry.replace(newEntry);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+		return 0;
+	}
+
+	@Override
+	public long getUid(String path) {
+		return new FileSystemEntry(path).uid;
+	}
+
+	@Override
+	public long getGid(String path) {
+		return new FileSystemEntry(path).gid;
+	}
+
+
 }

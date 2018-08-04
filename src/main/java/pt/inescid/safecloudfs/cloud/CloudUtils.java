@@ -95,13 +95,6 @@ public class CloudUtils {
 				overrides.setProperty("jclouds.trust-all-certs", "true");
 				overrides.setProperty("jclouds.relax-hostname", "true");
 
-
-
-
-				overrides.setProperty("swift.endpoint", "175.20.0.12:80");
-
-
-
 				SafeCloudFSUtils.cloudContexts[i] = ContextBuilder.newBuilder(account.provider)
 						.credentials(account.identity, account.credential).endpoint(account.endpoint).overrides(overrides).buildView(BlobStoreContext.class);
 

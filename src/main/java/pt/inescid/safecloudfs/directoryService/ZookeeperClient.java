@@ -99,4 +99,22 @@ public class ZookeeperClient implements DirectoryService {
 		return false;
 	}
 
+	@Override
+	public int chown(String path, long uid, long gid) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getUid(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getGid(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

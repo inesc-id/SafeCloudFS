@@ -202,4 +202,22 @@ public class LocalDirectoryService implements DirectoryService {
 		return true;
 	}
 
+	@Override
+	public int chown(String path, long uid, long gid) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getUid(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getGid(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }
