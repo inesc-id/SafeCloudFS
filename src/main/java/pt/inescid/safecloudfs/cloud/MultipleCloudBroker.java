@@ -3,6 +3,7 @@ package pt.inescid.safecloudfs.cloud;
 import static java.lang.Math.toIntExact;
 
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,6 +90,12 @@ public class MultipleCloudBroker implements CloudBroker {
 		SecretKey secretKey = AES.getSecretKey();
 		byte[] encryptedByteArray = AES.encrypt(byteArray, secretKey);
 
+		System.out.println("Key before split");
+		System.out.println(Base64.getEncoder().encodeToString(secretKey.getEncoded()));
+
+		System.out.println("Data before split");
+		System.out.println(Base64.getEncoder().encodeToString(encryptedByteArray));
+
 		// 2 - Now we break the secret using the PVSS protocol
 		// PVSSEngine.
 		// TODO: Usar valores de acordo com o setup
@@ -99,6 +106,10 @@ public class MultipleCloudBroker implements CloudBroker {
 		final Map<Integer, byte[]> parts = scheme.split(secretKey.getEncoded());
 
 		// 3 - Now we break the data blocks using erasure codes
+
+		// System.out.println("Will break this:");
+		// System.out.println(Base64.getEncoder().encodeToString(encryptedByteArray));
+
 		byte[][] dataBlocks = ErasureCodes.encode(encryptedByteArray,
 				SafeCloudFSProperties.cloudsN - SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
 
@@ -106,6 +117,9 @@ public class MultipleCloudBroker implements CloudBroker {
 			// Upload payload
 			UploadWorker[] workers = new UploadWorker[cloudContexts.length];
 			for (int i = 0; i < dataBlocks.length; i++) {
+				// System.out.println("Will upload this:");
+				// System.out.println(Base64.getEncoder().encodeToString(dataBlocks[i]));
+
 				workers[i] = new UploadWorker(i, path, dataBlocks[i]);
 
 				new Thread(workers[i]).start();
@@ -114,7 +128,7 @@ public class MultipleCloudBroker implements CloudBroker {
 			// Upload keys
 			UploadWorker[] workersKeys = new UploadWorker[cloudContexts.length];
 			for (int i = 0; i < dataBlocks.length; i++) {
-				workersKeys[i] = new UploadWorker(i, SafeCloudFSUtils.getKeyName(path), parts.get(i));
+				workersKeys[i] = new UploadWorker(i, SafeCloudFSUtils.getKeyName(path), parts.get(i + 1));
 				new Thread(workersKeys[i]).start();
 			}
 
@@ -212,8 +226,6 @@ public class MultipleCloudBroker implements CloudBroker {
 			Blob blob = blobStore.blobBuilder(blobName).payload(payload).contentLength(payload.size()).build();
 			blobStore.putBlob(account.containerName, blob);
 
-
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -232,7 +244,7 @@ public class MultipleCloudBroker implements CloudBroker {
 		public UploadWorker(int cloudId, String path, byte[] byteArray) {
 			this.cloudId = cloudId;
 			this.path = path;
-			this.byteArray = byteArray;
+			this.byteArray = byteArray.clone();
 		}
 
 		public void run() {
@@ -315,13 +327,23 @@ public class MultipleCloudBroker implements CloudBroker {
 
 		for (int i = 0; i < cloudAccounts.length; i++) {
 			dataParts[i] = dowloadBlob(path, i);
-			keyParts.put(new Integer(i + 1), dowloadBlob(SafeCloudFSUtils.getKeyName(path), i));
+
+			byte[] keypart = dowloadBlob(SafeCloudFSUtils.getKeyName(path), i);
+			if (keypart != null) {
+
+				keyParts.put(new Integer(i + 1), keypart);
+
+			}
 
 		}
 
 		byte[] key = scheme.join(keyParts);
+		System.out.println("Joined key:");
+		System.out.println(Base64.getEncoder().encodeToString(key));
 		byte[] dataCiphered = ErasureCodes.decode(dataParts,
 				SafeCloudFSProperties.cloudsN - SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
+		System.out.println("Joined aata:");
+		System.out.println(Base64.getEncoder().encodeToString(dataCiphered));
 
 		return AES.decrypt(dataCiphered, AES.getSecretKeyFromBytes(key));
 	}
@@ -376,8 +398,8 @@ public class MultipleCloudBroker implements CloudBroker {
 			is.close();
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
+			SafeCloudFSUtils.LOGGER.warning("Couldn't get part from Cloud #" + i + " is not accessible.");
+			return null;
 		}
 
 		return bytes;

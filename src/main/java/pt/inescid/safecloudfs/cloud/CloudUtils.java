@@ -11,22 +11,13 @@ import java.util.Set;
 import org.jclouds.ContextBuilder;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.apis.Apis;
-import org.jclouds.atmos.AtmosApiMetadata;
-import org.jclouds.atmos.AtmosClient;
-import org.jclouds.azureblob.AzureBlobApiMetadata;
-import org.jclouds.azureblob.AzureBlobClient;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.domain.Location;
-import org.jclouds.googlecloudstorage.GoogleCloudStorageApi;
-import org.jclouds.googlecloudstorage.GoogleCloudStorageApiMetadata;
-import org.jclouds.openstack.swift.v1.SwiftApi;
 import org.jclouds.openstack.swift.v1.SwiftApiMetadata;
 import org.jclouds.providers.ProviderMetadata;
 import org.jclouds.providers.Providers;
-import org.jclouds.s3.S3ApiMetadata;
-import org.jclouds.s3.S3Client;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -136,25 +127,6 @@ public class CloudUtils {
 				}
 				blobStore.putBlob(containerName, blob);
 
-				// Use Provider API
-				Object object = null;
-				if (apiMetadata instanceof S3ApiMetadata) {
-					S3Client api = SafeCloudFSUtils.cloudContexts[i].unwrapApi(S3Client.class);
-					object = api.headObject(containerName, blobName);
-				} else if (apiMetadata instanceof SwiftApiMetadata) {
-					SwiftApi api = SafeCloudFSUtils.cloudContexts[i].unwrapApi(SwiftApi.class);
-					object = api.getObjectApi(location.getId(), containerName).getWithoutBody(blobName);
-				} else if (apiMetadata instanceof AzureBlobApiMetadata) {
-					AzureBlobClient api = SafeCloudFSUtils.cloudContexts[i].unwrapApi(AzureBlobClient.class);
-					object = api.getBlobProperties(containerName, blobName);
-				} else if (apiMetadata instanceof AtmosApiMetadata) {
-					AtmosClient api = SafeCloudFSUtils.cloudContexts[i].unwrapApi(AtmosClient.class);
-					object = api.headFile(containerName + "/" + blobName);
-				} else if (apiMetadata instanceof GoogleCloudStorageApiMetadata) {
-					GoogleCloudStorageApi api = SafeCloudFSUtils.cloudContexts[i]
-							.unwrapApi(GoogleCloudStorageApi.class);
-					object = api.getObjectApi().getObject(containerName, blobName);
-				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -162,10 +134,7 @@ public class CloudUtils {
 				System.exit(-1);
 
 			} finally {
-				// delete cointainer
 				blobStore.deleteContainer(containerName);
-				// Close connecton
-				// RockFSUtils.cloudContexts[i].close();
 			}
 
 		}
