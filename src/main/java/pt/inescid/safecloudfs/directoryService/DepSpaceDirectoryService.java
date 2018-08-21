@@ -17,8 +17,6 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 	private static final String FILE_SYSTEM_ENTRY_ID = "FILE_SYSTEM_ENTRY";
 
-
-
 	public final static int POS_HASH = 1;
 	public final static int POS_N_LINK = 2;
 	public final static int POS_IS_DIR = 3;
@@ -26,8 +24,13 @@ public class DepSpaceDirectoryService implements DirectoryService {
 	public final static int POS_TS = 5;
 	public final static int POS_UID = 6;
 	public final static int POS_GID = 7;
-	public final static int POS_FILE_PATH = 8; //it starts here, but it will go on
 
+	public final static int POS_BIRTHTIME = 8;
+	public final static int POS_ATIM = 9;
+	public final static int POS_CTIM = 10;
+	public final static int POS_MTIM = 11;
+
+	public final static int POS_FILE_PATH = 12; // it starts here, but it will go on
 
 	private DepSpaceAccessor accessor;
 
@@ -50,21 +53,12 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		try {
 			accessor = new DepSpaceAdmin(clientID).createSpace(prop);
 
-
-
 			DepTuple template = DepTuple.createTuple(new Object[] { "nlink", "*" });
-
 
 			if (accessor.rdAll(template, 0).isEmpty()) {
 				DepTuple tupleNlink = DepTuple.createTuple(new Object[] { "nlink", "1" });
 				accessor.out(tupleNlink);
 			}
-
-
-//			Object[] temp  = fse.toTuple().getFields();
-//			for(int i = 0; i < temp.length; i++) {
-//				temp[i] = "*";
-//			}
 
 
 		} catch (DepSpaceException e) {
@@ -75,10 +69,9 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 	public void init(long uid, long gid) {
 
-
-
-
-		FileSystemEntry fse = new FileSystemEntry("/", true, 0, Calendar.getInstance().getTimeInMillis(), 1, uid, gid);
+		FileSystemEntry fse = new FileSystemEntry("/", true, 0, Calendar.getInstance().getTimeInMillis(), 1, uid, gid,
+				Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis(),
+				Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis());
 
 		try {
 			accessor.out(fse.toTuple());
@@ -94,7 +87,8 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		try {
 			FileSystemEntry originEntry = new FileSystemEntry(originPath);
 			FileSystemEntry destinationEntry = new FileSystemEntry(destinationPath, originEntry.isDir, originEntry.mode,
-					originEntry.ts, originEntry.nlink, originEntry.uid, originEntry.gid);
+					originEntry.ts, originEntry.nlink, originEntry.uid, originEntry.gid, originEntry.birthtime,
+					originEntry.atim, originEntry.ctim, originEntry.mtim);
 			originEntry.replace(destinationEntry);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -116,14 +110,12 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		try {
 
 			Object[] pathPartsTemp = path.split("/");
-			Object[]pathParts = new Object[pathPartsTemp.length-1];
+			Object[] pathParts = new Object[pathPartsTemp.length - 1];
 			System.arraycopy(pathPartsTemp, 1, pathParts, 0, pathParts.length);
 
 			pathParts = appendToBeginOfArray(pathParts, "/");
 
-
-
-			for (int i = POS_FILE_PATH+pathParts.length; i < SafeCloudFSConstants.MAX_DEPTH+POS_FILE_PATH; i++) {
+			for (int i = POS_FILE_PATH + pathParts.length; i < SafeCloudFSConstants.MAX_DEPTH + POS_FILE_PATH; i++) {
 
 				Object[] templateFields = new Object[i];
 
@@ -135,15 +127,17 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				templateFields[5] = "*";
 				templateFields[6] = "*";
 				templateFields[7] = "*";
+				templateFields[8] = "*";
+				templateFields[9] = "*";
+				templateFields[10] = "*";
+				templateFields[11] = "*";
 
 				System.arraycopy(pathParts, 0, templateFields, POS_FILE_PATH, pathParts.length);
-				for (int j = POS_FILE_PATH+pathParts.length; j < i; j++) {
+				for (int j = POS_FILE_PATH + pathParts.length; j < i; j++) {
 					templateFields[j] = "*";
 				}
 
 				DepTuple template = DepTuple.createTuple(templateFields);
-
-
 
 				try {
 					accessor.inAll(template);
@@ -161,7 +155,9 @@ public class DepSpaceDirectoryService implements DirectoryService {
 	public void mkfile(String path, long uid, long gid) {
 		try {
 			FileSystemEntry fse = new FileSystemEntry(path, false, 0, Calendar.getInstance().getTimeInMillis(),
-					getNewNLink(), uid, gid);
+					getNewNLink(), uid, gid, Calendar.getInstance().getTimeInMillis(),
+					Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis(),
+					Calendar.getInstance().getTimeInMillis());
 			DepTuple tuple = fse.toTuple();
 			try {
 				accessor.out(tuple);
@@ -178,7 +174,9 @@ public class DepSpaceDirectoryService implements DirectoryService {
 	public void mkdir(String path, long uid, long gid) {
 		try {
 			FileSystemEntry fse = new FileSystemEntry(path, true, 0, Calendar.getInstance().getTimeInMillis(),
-					getNewNLink(), uid, gid);
+					getNewNLink(), uid, gid, Calendar.getInstance().getTimeInMillis(),
+					Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis(),
+					Calendar.getInstance().getTimeInMillis());
 			DepTuple tuple = fse.toTuple();
 
 			try {
@@ -279,7 +277,6 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 			Object[] tupleTemplateFields = new Object[pathParts.length + POS_FILE_PATH + 1];
 
-
 			tupleTemplateFields[0] = FILE_SYSTEM_ENTRY_ID;
 			tupleTemplateFields[1] = "*";
 			tupleTemplateFields[2] = "*";
@@ -288,14 +285,16 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			tupleTemplateFields[5] = "*";
 			tupleTemplateFields[6] = "*";
 			tupleTemplateFields[7] = "*";
+			tupleTemplateFields[8] = "*";
+			tupleTemplateFields[9] = "*";
+			tupleTemplateFields[10] = "*";
+			tupleTemplateFields[11] = "*";
 
 			System.arraycopy(pathParts, 0, tupleTemplateFields, POS_FILE_PATH, pathParts.length);
 
-			tupleTemplateFields[tupleTemplateFields.length-1] = "*";
+			tupleTemplateFields[tupleTemplateFields.length - 1] = "*";
 
 			DepTuple template = DepTuple.createTuple(tupleTemplateFields);
-
-
 
 			ArrayList<DepTuple> children = null;
 			try {
@@ -306,11 +305,11 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			ArrayList<String> result = new ArrayList<>();
 			for (DepTuple entry : children) {
 
-				if(entry.getFields().length <= POS_FILE_PATH+pathParts.length) {
+				if (entry.getFields().length <= POS_FILE_PATH + pathParts.length) {
 					continue;
 				}
 
-				result.add(entry.getFields()[POS_FILE_PATH+pathParts.length].toString());
+				result.add(entry.getFields()[POS_FILE_PATH + pathParts.length].toString());
 
 			}
 
@@ -350,7 +349,6 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		// this string will be present in each file system entry of the tuple space in
 		// order to identify that the tuple corresponds to a file system entry
 
-
 		public String path = null;
 
 		public byte[] hash;
@@ -362,9 +360,13 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		public long uid;
 		public long gid;
 
+		public long birthtime;
+		public long atim;
+		public long ctim;
+		public long mtim;
 
-
-		public FileSystemEntry(String path, boolean isDir, Number mode, long ts, long nlink, long uid, long gid) {
+		public FileSystemEntry(String path, boolean isDir, Number mode, long ts, long nlink, long uid, long gid,
+				long birthtime, long atim, long ctim, long mtim) {
 			if (path.equals("/")) {
 				this.path = path;
 			} else {
@@ -377,11 +379,16 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			this.nlink = nlink;
 			this.uid = uid;
 			this.gid = gid;
+
+			this.birthtime = birthtime;
+			this.atim = atim;
+			this.ctim = ctim;
+			this.mtim = mtim;
 		}
 
 		public FileSystemEntry(long nLink) {
 			try {
-				Object[] metadataValues = new Object[] { "*", nLink, "*", "*", "*", "*", "*" };
+				Object[] metadataValues = new Object[] { "*", nLink, "*", "*", "*", "*", "*", "*", "*", "*", "*", "*" };
 
 				for (int i = 2; i < SafeCloudFSConstants.MAX_DEPTH; i++) {
 
@@ -417,8 +424,21 @@ public class DepSpaceDirectoryService implements DirectoryService {
 						this.isDir = (boolean) fields[POS_IS_DIR];
 						this.mode = (Number) fields[POS_MODE];
 						this.ts = (long) fields[POS_TS];
-						try{this.uid = (long)fields[POS_UID];}catch(Exception e) {this.uid = 0;}
-						try{this.gid = (long)fields[POS_GID];}catch(Exception e) {this.gid = 0;}
+						try {
+							this.uid = (long) fields[POS_UID];
+						} catch (Exception e) {
+							this.uid = 0;
+						}
+						try {
+							this.gid = (long) fields[POS_GID];
+						} catch (Exception e) {
+							this.gid = 0;
+						}
+
+						this.birthtime = (long) fields[POS_BIRTHTIME];
+						this.atim = (long) fields[POS_ATIM];
+						this.ctim = (long) fields[POS_CTIM];
+						this.mtim = (long) fields[POS_MTIM];
 
 					}
 				}
@@ -439,14 +459,13 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 				}
 
-				Object[] nullValues = new Object[] { FILE_SYSTEM_ENTRY_ID, "*", "*", "*", "*", "*", "*", "*" };
+				Object[] nullValues = new Object[] { FILE_SYSTEM_ENTRY_ID, "*", "*", "*", "*", "*", "*", "*", "*", "*",
+						"*", "*" };
 
 				Object[] tupleFields = new Object[pathParts.length + nullValues.length];
 
 				System.arraycopy(nullValues, 0, tupleFields, 0, nullValues.length);
 				System.arraycopy(pathParts, 0, tupleFields, nullValues.length, pathParts.length);
-
-
 
 				DepTuple template = DepTuple.createTuple(tupleFields);
 
@@ -461,13 +480,27 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				if (tuple != null) {
 					Object[] fields = tuple.getFields();
 					this.path = path;
-					this.hash =  fields[POS_HASH].equals("") ? null :  (byte[]) fields[POS_HASH];
+					this.hash = fields[POS_HASH].equals("") ? null : (byte[]) fields[POS_HASH];
 					this.nlink = Long.parseLong(fields[POS_N_LINK].toString());
 					this.isDir = (boolean) fields[POS_IS_DIR];
 					this.mode = (Number) fields[POS_MODE];
 					this.ts = (long) fields[POS_TS];
-					 try{this.uid = (long)fields[POS_UID];}catch(Exception e) {this.uid = 0;}
-					 try{this.gid = (long)fields[POS_GID];}catch(Exception e) {this.gid = 0;}
+					try {
+						this.uid = (long) fields[POS_UID];
+					} catch (Exception e) {
+						this.uid = 0;
+					}
+					try {
+						this.gid = (long) fields[POS_GID];
+					} catch (Exception e) {
+						this.gid = 0;
+					}
+
+					this.birthtime = (long) fields[POS_BIRTHTIME];
+					this.atim = (long) fields[POS_ATIM];
+					this.ctim = (long) fields[POS_CTIM];
+					this.mtim = (long) fields[POS_MTIM];
+
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -486,10 +519,11 @@ public class DepSpaceDirectoryService implements DirectoryService {
 					pathParts = appendToBeginOfArray(pathParts, "/");
 				}
 
-				Object[] metadata = new Object[] { FILE_SYSTEM_ENTRY_ID, hash, nlink, isDir, mode, ts, uid, gid };
+				Object[] metadata = new Object[] { FILE_SYSTEM_ENTRY_ID, hash, nlink, isDir, mode, ts, uid, gid,
+						birthtime, atim, ctim, mtim };
 
-				for(int i  = 0; i < metadata.length; i++) {
-					if(metadata[i] == null) {
+				for (int i = 0; i < metadata.length; i++) {
+					if (metadata[i] == null) {
 						metadata[i] = "";
 					}
 				}
@@ -498,7 +532,6 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 				System.arraycopy(metadata, 0, tupleFields, 0, metadata.length);
 				System.arraycopy(pathParts, 0, tupleFields, metadata.length, pathParts.length);
-
 
 				return DepTuple.createTuple(tupleFields);
 			} catch (Exception e) {
@@ -513,8 +546,8 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 				DepTuple depTuple = this.toTuple();
 				Object[] fields = depTuple.getFields();
-				for(int i = 0; i < fields.length; i++) {
-					if(fields[i] == null) {
+				for (int i = 0; i < fields.length; i++) {
+					if (fields[i] == null) {
 						fields[i] = "*";
 					}
 				}
@@ -568,7 +601,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			FileSystemEntry entry = new FileSystemEntry(path);
 			FileSystemEntry newEntry = new FileSystemEntry(path);
 			newEntry.uid = uid;
-			newEntry.gid = uid;
+			newEntry.gid = gid;
 			entry.replace(newEntry);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -587,7 +620,86 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		return new FileSystemEntry(path).gid;
 	}
 
+	@Override
+	public long getBirthtime(String path) {
+		long result =  new FileSystemEntry(path).birthtime / 1000 ;
+		return result;
+	}
 
+	@Override
+	public void setBirthtime(String path) {
+		try {
+			FileSystemEntry entry = new FileSystemEntry(path);
+			FileSystemEntry newEntry = new FileSystemEntry(path);
+			newEntry.birthtime = Calendar.getInstance().getTimeInMillis();
 
+			entry.replace(newEntry);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+	}
+
+	@Override
+	public long getAtim(String path) {
+		long result =  new FileSystemEntry(path).atim / 1000 ;
+		return result;
+	}
+
+	@Override
+	public void setAtim(String path) {
+		try {
+			FileSystemEntry entry = new FileSystemEntry(path);
+			FileSystemEntry newEntry = new FileSystemEntry(path);
+			newEntry.atim = Calendar.getInstance().getTimeInMillis();;
+
+			entry.replace(newEntry);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+	}
+
+	@Override
+	public long getCtim(String path) {
+		long result =  new FileSystemEntry(path).ctim / 1000 ;
+		return result;
+	}
+
+	@Override
+	public void setCtim(String path) {
+		try {
+			FileSystemEntry entry = new FileSystemEntry(path);
+			FileSystemEntry newEntry = new FileSystemEntry(path);
+			newEntry.ctim = Calendar.getInstance().getTimeInMillis();;
+
+			entry.replace(newEntry);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+	}
+
+	@Override
+	public long getMtim(String path) {
+		long result =  new FileSystemEntry(path).mtim / 1000 ;
+		return result;
+	}
+
+	@Override
+	public void setMtim(String path) {
+		try {
+			FileSystemEntry entry = new FileSystemEntry(path);
+			FileSystemEntry newEntry = new FileSystemEntry(path);
+			newEntry.mtim = Calendar.getInstance().getTimeInMillis();;
+
+			entry.replace(newEntry);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+	}
 
 }

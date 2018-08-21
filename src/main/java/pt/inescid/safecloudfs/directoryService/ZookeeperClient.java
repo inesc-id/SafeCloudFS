@@ -123,4 +123,52 @@ public class ZookeeperClient implements DirectoryService {
 
 	}
 
+	@Override
+	public long getBirthtime(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setBirthtime(String path) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public long getAtim(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setAtim(String path) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public long getCtim(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setCtim(String path) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public long getMtim(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setMtim(String path) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

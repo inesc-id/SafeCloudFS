@@ -3,7 +3,6 @@ package pt.inescid.safecloudfs.cloud;
 import static java.lang.Math.toIntExact;
 
 import java.io.InputStream;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,20 +93,20 @@ public class MultipleCloudBroker implements CloudBroker {
 		// PVSSEngine.
 		// TODO: Usar valores de acordo com o setup
 
-//		 PVSSEngine pvssEngine = PVSSEngine.getInstance(4, 2, 192);
+		// PVSSEngine pvssEngine = PVSSEngine.getInstance(4, 2, 192);
 		//// pvssEngine.
 
 		final Map<Integer, byte[]> parts = scheme.split(secretKey.getEncoded());
 
 		// 3 - Now we break the data blocks using erasure codes
-		byte[][] dataBlocks = ErasureCodes.encode(encryptedByteArray, SafeCloudFSProperties.cloudsN- SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
+		byte[][] dataBlocks = ErasureCodes.encode(encryptedByteArray,
+				SafeCloudFSProperties.cloudsN - SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
 
 		try {
 			// Upload payload
 			UploadWorker[] workers = new UploadWorker[cloudContexts.length];
 			for (int i = 0; i < dataBlocks.length; i++) {
 				workers[i] = new UploadWorker(i, path, dataBlocks[i]);
-
 
 				new Thread(workers[i]).start();
 			}
@@ -162,12 +161,11 @@ public class MultipleCloudBroker implements CloudBroker {
 
 		final Map<Integer, byte[]> parts = scheme.split(secretKey.getEncoded());
 
-
-
 		// 3 - Now we break the data blocks using erasure codes
 		byte[][] dataBlocks = null;
 		try {
-			dataBlocks = ErasureCodes.encode(encryptedByteArray, SafeCloudFSProperties.cloudsN- SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
+			dataBlocks = ErasureCodes.encode(encryptedByteArray,
+					SafeCloudFSProperties.cloudsN - SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -177,10 +175,6 @@ public class MultipleCloudBroker implements CloudBroker {
 
 			for (int i = 0; i < dataBlocks.length; i++) {
 				uploadByteArray(i, path, dataBlocks[i]);
-
-
-
-
 
 				Integer key = new Integer(i + 1);
 				uploadByteArray(i, SafeCloudFSUtils.getKeyName(path), parts.get(key));
@@ -214,40 +208,17 @@ public class MultipleCloudBroker implements CloudBroker {
 
 			ByteSource payload = ByteSource.wrap(byteArray);
 
-
-
 			// Add Blob
 			Blob blob = blobStore.blobBuilder(blobName).payload(payload).contentLength(payload.size()).build();
 			blobStore.putBlob(account.containerName, blob);
 
-			// Use Provider API
-			Object object = null;
-			if (apiMetadata instanceof S3ApiMetadata) {
-				S3Client api = cloudContexts[cloudId].unwrapApi(S3Client.class);
-				object = api.headObject(account.containerName, blobName);
 
-			} else if (apiMetadata instanceof SwiftApiMetadata) {
-				SwiftApi api = cloudContexts[cloudId].unwrapApi(SwiftApi.class);
-				object = api.getObjectApi(location.getId(), account.containerName).getWithoutBody(blobName);
-			} else if (apiMetadata instanceof AzureBlobApiMetadata) {
-				AzureBlobClient api = cloudContexts[cloudId].unwrapApi(AzureBlobClient.class);
-				object = api.getBlobProperties(account.containerName, blobName);
-			} else if (apiMetadata instanceof AtmosApiMetadata) {
-				AtmosClient api = cloudContexts[cloudId].unwrapApi(AtmosClient.class);
-				object = api.headFile(account.containerName + "/" + blobName);
-			} else if (apiMetadata instanceof GoogleCloudStorageApiMetadata) {
-				GoogleCloudStorageApi api = cloudContexts[cloudId].unwrapApi(GoogleCloudStorageApi.class);
-				object = api.getObjectApi().getObject(account.containerName, blobName);
-			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
 		} finally {
-			// delete cointainer
-			// blobStore.deleteContainer(containerName);
-			// Close connecton
-			// context.close();
+
 		}
 
 	}
@@ -294,30 +265,9 @@ public class MultipleCloudBroker implements CloudBroker {
 			try {
 				BlobStore blobStore = null;
 
-				ApiMetadata apiMetadata = cloudContext.unwrap().getProviderMetadata().getApiMetadata();
 				blobStore = cloudContext.getBlobStore();
 
-				if (apiMetadata instanceof S3ApiMetadata) {
-					S3Client api = cloudContext.unwrapApi(S3Client.class);
-					api.deleteObject(account.containerName, path);
-
-				} else if (apiMetadata instanceof SwiftApiMetadata) {
-					SwiftApi api = cloudContext.unwrapApi(SwiftApi.class);
-					Location location = null;
-					if (apiMetadata instanceof SwiftApiMetadata) {
-						location = Iterables.getFirst(blobStore.listAssignableLocations(), null);
-					}
-					api.getObjectApi(location.getId(), account.containerName).delete(path);
-				} else if (apiMetadata instanceof AzureBlobApiMetadata) {
-					AzureBlobClient api = cloudContext.unwrapApi(AzureBlobClient.class);
-					api.deleteBlob(account.containerName, path);
-				} else if (apiMetadata instanceof AtmosApiMetadata) {
-					AtmosClient api = cloudContext.unwrapApi(AtmosClient.class);
-					api.deletePath(account.containerName + "/" + path);
-				} else if (apiMetadata instanceof GoogleCloudStorageApiMetadata) {
-					GoogleCloudStorageApi api = cloudContext.unwrapApi(GoogleCloudStorageApi.class);
-					api.getObjectApi().deleteObject(account.containerName, path);
-				}
+				blobStore.removeBlob(account.containerName, path);
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -365,16 +315,13 @@ public class MultipleCloudBroker implements CloudBroker {
 
 		for (int i = 0; i < cloudAccounts.length; i++) {
 			dataParts[i] = dowloadBlob(path, i);
-			keyParts.put(new Integer(i+1), dowloadBlob(SafeCloudFSUtils.getKeyName(path), i));
-
-
-
-
+			keyParts.put(new Integer(i + 1), dowloadBlob(SafeCloudFSUtils.getKeyName(path), i));
 
 		}
 
 		byte[] key = scheme.join(keyParts);
-		byte[] dataCiphered = ErasureCodes.decode(dataParts, SafeCloudFSProperties.cloudsN- SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
+		byte[] dataCiphered = ErasureCodes.decode(dataParts,
+				SafeCloudFSProperties.cloudsN - SafeCloudFSProperties.cloudsF, SafeCloudFSProperties.cloudsF);
 
 		return AES.decrypt(dataCiphered, AES.getSecretKeyFromBytes(key));
 	}

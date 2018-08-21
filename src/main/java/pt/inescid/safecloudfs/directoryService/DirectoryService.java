@@ -42,4 +42,28 @@ public interface DirectoryService {
 	public long getUid(String path);
 
 	public long getGid(String path);
+
+	public long getBirthtime(String path);
+
+	public void setBirthtime(String path);
+
+
+	public long getAtim(String path);
+
+	public void setAtim(String path);
+
+
+	public long getCtim(String path);
+
+	public void setCtim(String path);
+
+
+	public long getMtim(String path);
+
+	public void setMtim(String path);
+
+
+
+
+
 }

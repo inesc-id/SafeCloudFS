@@ -19,7 +19,6 @@ import pt.inescid.safecloudfs.directoryService.ZookeeperClient;
 import pt.inescid.safecloudfs.fs.CacheService;
 import pt.inescid.safecloudfs.fs.SafeCloudFileSystem;
 import pt.inescid.safecloudfs.recovery.SafeCloudFSLog;
-import pt.inescid.safecloudfs.recovery.SafeCloudFSLogDepSpace;
 import pt.inescid.safecloudfs.recovery.SafeCloudFSLogLocal;
 import pt.inescid.safecloudfs.recovery.SafeCloudFSLogZookeeper;
 import pt.inescid.safecloudfs.recovery.gui.SafeCloudFSLogViewer;

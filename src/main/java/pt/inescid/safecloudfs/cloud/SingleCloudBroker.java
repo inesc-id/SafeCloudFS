@@ -94,34 +94,10 @@ public class SingleCloudBroker implements CloudBroker {
 			Blob blob = blobStore.blobBuilder(blobName).payload(payload).contentLength(payload.size()).build();
 			blobStore.putBlob(account.containerName, blob);
 
-			// Use Provider API
-			Object object = null;
-			if (apiMetadata instanceof S3ApiMetadata) {
-				S3Client api = cloudContext.unwrapApi(S3Client.class);
-				object = api.headObject(account.containerName, blobName);
-
-			} else if (apiMetadata instanceof SwiftApiMetadata) {
-				SwiftApi api = cloudContext.unwrapApi(SwiftApi.class);
-				object = api.getObjectApi(location.getId(), account.containerName).getWithoutBody(blobName);
-			} else if (apiMetadata instanceof AzureBlobApiMetadata) {
-				AzureBlobClient api = cloudContext.unwrapApi(AzureBlobClient.class);
-				object = api.getBlobProperties(account.containerName, blobName);
-			} else if (apiMetadata instanceof AtmosApiMetadata) {
-				AtmosClient api = cloudContext.unwrapApi(AtmosClient.class);
-				object = api.headFile(account.containerName + "/" + blobName);
-			} else if (apiMetadata instanceof GoogleCloudStorageApiMetadata) {
-				GoogleCloudStorageApi api = cloudContext.unwrapApi(GoogleCloudStorageApi.class);
-				object = api.getObjectApi().getObject(account.containerName, blobName);
-			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
-		} finally {
-			// delete cointainer
-			// blobStore.deleteContainer(containerName);
-			// Close connecton
-			// context.close();
 		}
 
 	}
@@ -161,30 +137,10 @@ public class SingleCloudBroker implements CloudBroker {
 		try {
 			BlobStore blobStore = null;
 
-			ApiMetadata apiMetadata = cloudContext.unwrap().getProviderMetadata().getApiMetadata();
 			blobStore = cloudContext.getBlobStore();
 
-			if (apiMetadata instanceof S3ApiMetadata) {
-				S3Client api = cloudContext.unwrapApi(S3Client.class);
-				api.deleteObject(account.containerName, path);
+			blobStore.removeBlob(account.containerName, path);
 
-			} else if (apiMetadata instanceof SwiftApiMetadata) {
-				SwiftApi api = cloudContext.unwrapApi(SwiftApi.class);
-				Location location = null;
-				if (apiMetadata instanceof SwiftApiMetadata) {
-					location = Iterables.getFirst(blobStore.listAssignableLocations(), null);
-				}
-				api.getObjectApi(location.getId(), account.containerName).delete(path);
-			} else if (apiMetadata instanceof AzureBlobApiMetadata) {
-				AzureBlobClient api = cloudContext.unwrapApi(AzureBlobClient.class);
-				api.deleteBlob(account.containerName, path);
-			} else if (apiMetadata instanceof AtmosApiMetadata) {
-				AtmosClient api = cloudContext.unwrapApi(AtmosClient.class);
-				api.deletePath(account.containerName + "/" + path);
-			} else if (apiMetadata instanceof GoogleCloudStorageApiMetadata) {
-				GoogleCloudStorageApi api = cloudContext.unwrapApi(GoogleCloudStorageApi.class);
-				api.getObjectApi().deleteObject(account.containerName, path);
-			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

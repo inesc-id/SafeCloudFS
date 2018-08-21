@@ -142,6 +142,10 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		try {
 			if (this.directoryService.exists(path)) {
 
+
+
+
+
 				if (this.directoryService.isDir(path)) {
 					stat.st_mode.set(FileStat.S_IFDIR | 0777);
 				} else {
@@ -153,8 +157,10 @@ public class SafeCloudFileSystem extends FuseStubFS {
 				stat.st_gid.set(this.directoryService.getGid(path));
 
 
-				System.out.println("UserID = " + this.directoryService.getUid(path));
-				System.out.println("UserGID = " + this.directoryService.getUid(path));
+				stat.st_birthtime.tv_sec.set(this.directoryService.getBirthtime(path));
+				stat.st_atim.tv_sec.set(this.directoryService.getAtim(path));
+				stat.st_ctim.tv_sec.set(this.directoryService.getCtim(path));
+				stat.st_mtim.tv_sec.set(this.directoryService.getMtim(path));
 
 
 				return 0;
@@ -244,7 +250,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			ArrayList<String> dirContent = this.directoryService.readDir(path);
 			for (String nodeName : dirContent) {
-
+				System.out.println("Folder: " + path + " - " + nodeName);
 				filter.apply(buf, nodeName, null, 0);
 			}
 
@@ -374,11 +380,11 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			if (!this.directoryService.exists(path)) {
 				return -ErrorCodes.ENOENT();
 			}
+			long nLink = this.directoryService.getNLink(path);
 
-			this.cloudBroker.remove(this.directoryService.getNLink(path) + "");
+			this.cloudBroker.remove(SafeCloudFSUtils.getFileName(nLink));
 			this.directoryService.rm(path);
 
-			long nLink = this.directoryService.getNLink(path);
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path, nLink, 0,
 					SafeCloudFSOperation.UNLINK, 0);
@@ -417,6 +423,10 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			if (this.directoryService.isDir(path)) {
 				return -ErrorCodes.EISDIR();
 			}
+
+			this.directoryService.setAtim(path);
+			this.directoryService.setCtim(path);
+			this.directoryService.setMtim(path);
 
 			long nLink = this.directoryService.getNLink(path);
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path, nLink, 0,
@@ -550,6 +560,8 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	public int chmod(String path, long mode) {
 		try {
 			this.directoryService.setMode(path, mode);
+			this.directoryService.setAtim(path);
+			this.directoryService.setCtim(path);
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 					this.directoryService.getNLink(path), SafeCloudFSOperation.CHMOD, mode);
@@ -575,6 +587,8 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int chown(String path, long uid, long gid) {
+		this.directoryService.setCtim(path);
+		this.directoryService.setAtim(path);
 		return this.directoryService.chown(path, uid, gid);
 	}
 
@@ -592,7 +606,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int access(String path, int mask) {
-		// TODO Auto-generated method stub
+		this.directoryService.setAtim(path);
 		return super.access(path, mask);
 	}
 
