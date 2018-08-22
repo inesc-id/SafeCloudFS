@@ -54,13 +54,13 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		this.contents = new HashMap<>();
 		this.mountFolder = mountFolder;
 		this.directoryService = directoryService;
-		//this.directoryService.init(SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
+		// this.directoryService.init(SafeCloudFSProperties.UID,
+		// SafeCloudFSProperties.GID);
 
 		this.directoryService.init(SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
 		this.log = log;
 
-
-		System.out.println("uid=" + SafeCloudFSProperties.UID + " gid=" +  SafeCloudFSProperties.GID);
+		System.out.println("uid=" + SafeCloudFSProperties.UID + " gid=" + SafeCloudFSProperties.GID);
 	}
 
 	public SafeCloudFileSystem(String mountFolder, DirectoryService directoryService, CloudBroker cloudUploader,
@@ -74,7 +74,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		this.log = log;
 		this.cacheService = cacheService;
 
-		System.out.println("uid=" + SafeCloudFSProperties.UID + " gid=" +  SafeCloudFSProperties.GID);
+		System.out.println("uid=" + SafeCloudFSProperties.UID + " gid=" + SafeCloudFSProperties.GID);
 
 	}
 
@@ -123,10 +123,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 						this.directoryService.getNLink(path), 0, SafeCloudFSOperation.CREATE, mode);
-				if(this.log != null) {
+				if (this.log != null) {
 					this.log.log(logEntry);
 				}
-
 
 				return 0;
 			}
@@ -142,10 +141,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		try {
 			if (this.directoryService.exists(path)) {
 
-
-
-
-
 				if (this.directoryService.isDir(path)) {
 					stat.st_mode.set(FileStat.S_IFDIR | 0777);
 				} else {
@@ -156,12 +151,13 @@ public class SafeCloudFileSystem extends FuseStubFS {
 				stat.st_uid.set(this.directoryService.getUid(path));
 				stat.st_gid.set(this.directoryService.getGid(path));
 
+				if (stat.st_birthtime != null) {
+					stat.st_birthtime.tv_sec.set(this.directoryService.getBirthtime(path));
+				}
 
-				stat.st_birthtime.tv_sec.set(this.directoryService.getBirthtime(path));
 				stat.st_atim.tv_sec.set(this.directoryService.getAtim(path));
 				stat.st_ctim.tv_sec.set(this.directoryService.getCtim(path));
 				stat.st_mtim.tv_sec.set(this.directoryService.getMtim(path));
-
 
 				return 0;
 			}
@@ -184,7 +180,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 						this.directoryService.getNLink(path), 0, SafeCloudFSOperation.MKDIR, mode);
-				if(this.log != null) {
+				if (this.log != null) {
 					this.log.log(logEntry);
 				}
 
@@ -232,7 +228,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		byte[] bytes = this.cloudBroker.download(SafeCloudFSUtils.getFileName(nLink));
 		buffer.put(0, bytes, 0, bytes.length);
 		return bytes.length;
-
 
 	}
 
@@ -308,7 +303,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 					this.directoryService.getNLink(path), 0, SafeCloudFSOperation.RENAME, 0);
-			if(this.log != null) {
+			if (this.log != null) {
 				this.log.log(logEntry);
 			}
 
@@ -333,7 +328,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 					this.directoryService.getNLink(path), 0, SafeCloudFSOperation.RMDIR, 0);
-			if(this.log != null) {
+			if (this.log != null) {
 				this.log.log(logEntry);
 			}
 			SafeCloudFSUtils.LOGGER.info("Directory " + path + " was removed.");
@@ -385,10 +380,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			this.cloudBroker.remove(SafeCloudFSUtils.getFileName(nLink));
 			this.directoryService.rm(path);
 
-
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path, nLink, 0,
 					SafeCloudFSOperation.UNLINK, 0);
-			if(this.log != null) {
+			if (this.log != null) {
 				this.log.log(logEntry);
 			}
 
@@ -433,15 +427,15 @@ public class SafeCloudFileSystem extends FuseStubFS {
 					SafeCloudFSOperation.WRITE, 0);
 
 			int version = 0;
-			if(this.log != null) {
+			if (this.log != null) {
 				version = this.log.log(logEntry);
 
-				logDelta(path, buf, size, offset, fi, version-1
-						//because the version given by this.log.log corresponds to the CURRENT file, not the previous one
-						);
+				logDelta(path, buf, size, offset, fi, version - 1
+				// because the version given by this.log.log corresponds to the CURRENT file,
+				// not the previous one
+				);
 
 			}
-
 
 			return write(path, buf, size, offset, nLink);
 		} catch (Exception e) {
@@ -460,13 +454,10 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			this.contents.put(path, ByteBuffer.allocate(toIntExact(bufSize)));
 		}
 
-
-
 		byte[] bytes = new byte[toIntExact(bufSize)];
 		for (long i = 0; i < bufSize; i++) {
 			bytes[toIntExact(i)] = buffer.getByte(i);
 		}
-
 
 		cloudBroker.upload(SafeCloudFSUtils.getFileName(nLink), bytes);
 
@@ -495,11 +486,11 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		return toIntExact(bufSize);
 	}
 
-
 	/**
-	 * Logs the data part of the file to the cloud providers
-	 * It only uploads the differences between the previous and the current versions
-	 * This way it saves some storage
+	 * Logs the data part of the file to the cloud providers It only uploads the
+	 * differences between the previous and the current versions This way it saves
+	 * some storage
+	 *
 	 * @param path
 	 * @param buffer
 	 * @param size
@@ -510,10 +501,9 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	private void logDelta(String path, Pointer buffer, long size, long offset, FuseFileInfo fi, int versionNumber) {
 		long nLink = this.directoryService.getNLink(path);
 		if (versionNumber == 0 || this.log == null) {
-			//There is no delta o calculate since this is the first version of the file
+			// There is no delta o calculate since this is the first version of the file
 			return;
 		}
-
 
 		// first we get the previous version
 		byte[] previousVersion = null;
@@ -529,8 +519,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			previousVersion = this.cloudBroker.download(SafeCloudFSUtils.getFileName(nLink));
 			buffer.put(0, previousVersion, 0, previousVersion.length);
 		}
-
-
 
 		byte[] currentVersion = new byte[toIntExact(size)];
 		for (long i = 0; i < size; i++) {
@@ -565,7 +553,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 					this.directoryService.getNLink(path), SafeCloudFSOperation.CHMOD, mode);
-			if(this.log != null) {
+			if (this.log != null) {
 				this.log.log(logEntry);
 			}
 
@@ -580,7 +568,6 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	@Override
 	public int setxattr(String path, String name, Pointer value, long size, int flags) {
 		// TODO Auto-generated method stub
-
 
 		return super.setxattr(path, name, value, size, flags);
 	}
@@ -615,9 +602,5 @@ public class SafeCloudFileSystem extends FuseStubFS {
 		// TODO Auto-generated method stub
 		return super.lock(path, fi, cmd, flock);
 	}
-
-
-
-
 
 }
