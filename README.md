@@ -1,4 +1,4 @@
-# SafeCloudFS
+# SafeCloudFS aka RockFS
 
 SafeCloudFS -- is a File System supported by a single cloud or cloud-of-clouds resilient to client side attacks.
 
