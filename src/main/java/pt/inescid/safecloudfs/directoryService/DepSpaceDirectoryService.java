@@ -12,6 +12,7 @@ import depspace.general.DepSpaceProperties;
 import depspace.general.DepTuple;
 import pt.inescid.safecloudfs.security.SHA;
 import pt.inescid.safecloudfs.utils.SafeCloudFSConstants;
+import pt.inescid.safecloudfs.utils.SafeCloudFSUtils;
 
 public class DepSpaceDirectoryService implements DirectoryService {
 
@@ -30,7 +31,9 @@ public class DepSpaceDirectoryService implements DirectoryService {
 	public final static int POS_CTIM = 10;
 	public final static int POS_MTIM = 11;
 
-	public final static int POS_FILE_PATH = 12; // it starts here, but it will go on
+	public final static int POS_SIZE = 12;
+
+	public final static int POS_FILE_PATH = 13; // it starts here, but it will go on
 
 	private DepSpaceAccessor accessor;
 
@@ -71,13 +74,13 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 		FileSystemEntry fse = new FileSystemEntry("/", true, 0, Calendar.getInstance().getTimeInMillis(), 1, uid, gid,
 				Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis(),
-				Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis());
+				Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis(), 0);
 
 		try {
 			accessor.out(fse.toTuple());
 		} catch (DepSpaceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SafeCloudFSUtils.LOGGER.severe(e.getMessage());
+			System.exit(-1);
 		}
 
 	}
@@ -88,7 +91,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			FileSystemEntry originEntry = new FileSystemEntry(originPath);
 			FileSystemEntry destinationEntry = new FileSystemEntry(destinationPath, originEntry.isDir, originEntry.mode,
 					originEntry.ts, originEntry.nlink, originEntry.uid, originEntry.gid, originEntry.birthtime,
-					originEntry.atim, originEntry.ctim, originEntry.mtim);
+					originEntry.atim, originEntry.ctim, originEntry.mtim, originEntry.size);
 			originEntry.replace(destinationEntry);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -131,6 +134,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				templateFields[9] = "*";
 				templateFields[10] = "*";
 				templateFields[11] = "*";
+				templateFields[12] = "*";
 
 				System.arraycopy(pathParts, 0, templateFields, POS_FILE_PATH, pathParts.length);
 				for (int j = POS_FILE_PATH + pathParts.length; j < i; j++) {
@@ -157,7 +161,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			FileSystemEntry fse = new FileSystemEntry(path, false, 0, Calendar.getInstance().getTimeInMillis(),
 					getNewNLink(), uid, gid, Calendar.getInstance().getTimeInMillis(),
 					Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis(),
-					Calendar.getInstance().getTimeInMillis());
+					Calendar.getInstance().getTimeInMillis(), 0);
 			DepTuple tuple = fse.toTuple();
 			try {
 				accessor.out(tuple);
@@ -176,7 +180,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			FileSystemEntry fse = new FileSystemEntry(path, true, 0, Calendar.getInstance().getTimeInMillis(),
 					getNewNLink(), uid, gid, Calendar.getInstance().getTimeInMillis(),
 					Calendar.getInstance().getTimeInMillis(), Calendar.getInstance().getTimeInMillis(),
-					Calendar.getInstance().getTimeInMillis());
+					Calendar.getInstance().getTimeInMillis(), 0);
 			DepTuple tuple = fse.toTuple();
 
 			try {
@@ -289,6 +293,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			tupleTemplateFields[9] = "*";
 			tupleTemplateFields[10] = "*";
 			tupleTemplateFields[11] = "*";
+			tupleTemplateFields[12] = "*";
 
 			System.arraycopy(pathParts, 0, tupleTemplateFields, POS_FILE_PATH, pathParts.length);
 
@@ -365,8 +370,10 @@ public class DepSpaceDirectoryService implements DirectoryService {
 		public long ctim;
 		public long mtim;
 
+		public long size;
+
 		public FileSystemEntry(String path, boolean isDir, Number mode, long ts, long nlink, long uid, long gid,
-				long birthtime, long atim, long ctim, long mtim) {
+				long birthtime, long atim, long ctim, long mtim, long size) {
 			if (path.equals("/")) {
 				this.path = path;
 			} else {
@@ -384,11 +391,13 @@ public class DepSpaceDirectoryService implements DirectoryService {
 			this.atim = atim;
 			this.ctim = ctim;
 			this.mtim = mtim;
+
+			this.size = size;
 		}
 
 		public FileSystemEntry(long nLink) {
 			try {
-				Object[] metadataValues = new Object[] { "*", nLink, "*", "*", "*", "*", "*", "*", "*", "*", "*", "*" };
+				Object[] metadataValues = new Object[] { "*", nLink, "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*" };
 
 				for (int i = 2; i < SafeCloudFSConstants.MAX_DEPTH; i++) {
 
@@ -460,7 +469,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				}
 
 				Object[] nullValues = new Object[] { FILE_SYSTEM_ENTRY_ID, "*", "*", "*", "*", "*", "*", "*", "*", "*",
-						"*", "*" };
+						"*", "*", "*" };
 
 				Object[] tupleFields = new Object[pathParts.length + nullValues.length];
 
@@ -501,6 +510,8 @@ public class DepSpaceDirectoryService implements DirectoryService {
 					this.ctim = (long) fields[POS_CTIM];
 					this.mtim = (long) fields[POS_MTIM];
 
+					this.size = (long) fields[POS_SIZE];
+
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -520,7 +531,7 @@ public class DepSpaceDirectoryService implements DirectoryService {
 				}
 
 				Object[] metadata = new Object[] { FILE_SYSTEM_ENTRY_ID, hash, nlink, isDir, mode, ts, uid, gid,
-						birthtime, atim, ctim, mtim };
+						birthtime, atim, ctim, mtim, size };
 
 				for (int i = 0; i < metadata.length; i++) {
 					if (metadata[i] == null) {
@@ -700,6 +711,21 @@ public class DepSpaceDirectoryService implements DirectoryService {
 
 		}
 
+	}
+
+	@Override
+	public long getSize(String path) {
+		return new FileSystemEntry(path).size;
+	}
+
+	@Override
+	public void setSize(String path, long size) {
+		FileSystemEntry fse = new FileSystemEntry(path);
+		FileSystemEntry newFse = new FileSystemEntry(path);
+
+		newFse.size = size;
+
+		fse.replace(newFse);
 	}
 
 }

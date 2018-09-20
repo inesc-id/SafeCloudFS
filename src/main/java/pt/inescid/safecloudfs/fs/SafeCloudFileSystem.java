@@ -4,11 +4,9 @@ import static java.lang.Math.toIntExact;
 import static jnr.ffi.Platform.OS.WINDOWS;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.logging.Level;
 
 import jnr.ffi.Platform;
@@ -39,7 +37,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	private DirectoryService directoryService;
 
-	private HashMap<String, ByteBuffer> contents;
+//	private HashMap<String, ByteBuffer> contents;
 
 	private SafeCloudFSLog log;
 
@@ -51,7 +49,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			SafeCloudFSLog log) {
 		super();
 		this.cloudBroker = cloudUploader;
-		this.contents = new HashMap<>();
+//		this.contents = new HashMap<>();
 		this.mountFolder = mountFolder;
 		this.directoryService = directoryService;
 		// this.directoryService.init(SafeCloudFSProperties.UID,
@@ -67,7 +65,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			SafeCloudFSLog log, CacheService cacheService) {
 		super();
 		this.cloudBroker = cloudUploader;
-		this.contents = new HashMap<>();
+//		this.contents = new HashMap<>();
 		this.mountFolder = mountFolder;
 		this.directoryService = directoryService;
 		this.directoryService.init(SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
@@ -119,7 +117,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 				this.directoryService.mkfile(path, SafeCloudFSProperties.UID, SafeCloudFSProperties.GID);
 
-				this.contents.put(path, ByteBuffer.allocate(0));
+//				this.contents.put(path, ByteBuffer.allocate(0));
 
 				SafeCloudFSLogEntry logEntry = new SafeCloudFSLogEntry(0, SafeCloudFSProperties.UID, path,
 						this.directoryService.getNLink(path), 0, SafeCloudFSOperation.CREATE, mode);
@@ -145,7 +143,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 					stat.st_mode.set(FileStat.S_IFDIR | 0777);
 				} else {
 					stat.st_mode.set(FileStat.S_IFREG | 0777);
-					stat.st_size.set(contents.get(path).capacity());
+					stat.st_size.set(this.directoryService.getSize(path));
 				}
 
 				stat.st_uid.set(this.directoryService.getUid(path));
@@ -197,6 +195,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int read(String path, Pointer buf, @size_t long size, @off_t long offset, FuseFileInfo fi) {
+		SafeCloudFSUtils.LOGGER.info("Operation: read. Path: " + path);
 		try {
 
 			if (!this.directoryService.exists(path)) {
@@ -233,6 +232,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int readdir(String path, Pointer buf, FuseFillDir filter, @off_t long offset, FuseFileInfo fi) {
+		SafeCloudFSUtils.LOGGER.info("Operation: readdir. Path: " + path);
 		try {
 			if (!this.directoryService.exists(path)) {
 				return -ErrorCodes.ENOENT();
@@ -258,6 +258,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int statfs(String path, Statvfs stbuf) {
+		SafeCloudFSUtils.LOGGER.info("Operation: statfs. Path: " + path);
 		try {
 			if (Platform.getNativePlatform().getOS() == WINDOWS) {
 				if ("/".equals(path)) {
@@ -358,13 +359,20 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	}
 
 	private synchronized void truncateFile(String path, long size) {
-		if (size < contents.get(path).capacity()) {
+		if (size < this.directoryService.getSize(path)) {
 			// Need to create a new, smaller buffer
-			ByteBuffer newContents = ByteBuffer.allocate((int) size);
 			byte[] bytesRead = new byte[(int) size];
-			contents.get(path).get(bytesRead);
-			newContents.put(bytesRead);
-			contents.put(path, newContents);
+
+			//TODO: Check is this is really necessary
+//			ByteBuffer newContents = ByteBuffer.allocate((int) size);
+//
+//			contents.get(path).get(bytesRead);
+//
+//			newContents.put(bytesRead);
+//
+//			contents.put(path, newContents);
+//
+
 		}
 	}
 
@@ -399,6 +407,7 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int open(String path, FuseFileInfo fi) {
+		SafeCloudFSUtils.LOGGER.info("Operation: open. Path: " + path);
 		try {
 
 			return 0;
@@ -437,7 +446,12 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 			}
 
-			return write(path, buf, size, offset, nLink);
+
+			int  result = write(path, buf, size, offset, nLink);
+
+			this.directoryService.setSize(path, size);
+
+			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return -ErrorCodes.ENOENT();
@@ -447,12 +461,12 @@ public class SafeCloudFileSystem extends FuseStubFS {
 	// Send to the clouds
 	private int write(String path, Pointer buffer, long bufSize, long writeOffset, long nLink) {
 
-		if (!this.contents.containsKey(path)) {
-			this.contents.put(path, ByteBuffer.allocate(toIntExact(bufSize)));
-		}
-		if (this.contents.get(path).capacity() == 0) {
-			this.contents.put(path, ByteBuffer.allocate(toIntExact(bufSize)));
-		}
+//		if (!this.contents.containsKey(path)) {
+//			this.contents.put(path, ByteBuffer.allocate(toIntExact(bufSize)));
+//		}
+//		if (this.contents.get(path).capacity() == 0) {
+//			this.contents.put(path, ByteBuffer.allocate(toIntExact(bufSize)));
+//		}
 
 		byte[] bytes = new byte[toIntExact(bufSize)];
 		for (long i = 0; i < bufSize; i++) {
@@ -465,21 +479,21 @@ public class SafeCloudFileSystem extends FuseStubFS {
 			this.cacheService.saveToCache(nLink, bytes);
 		}
 
-		int maxWriteIndex = (int) (writeOffset + bufSize);
-		byte[] bytesToWrite = new byte[(int) bufSize];
+//		int maxWriteIndex = (int) (writeOffset + bufSize);
+//		byte[] bytesToWrite = new byte[(int) bufSize];
 
 		synchronized (this) {
-			if (maxWriteIndex > this.contents.get(path).capacity()) {
-				// Need to create a new, larger buffer
-				ByteBuffer newContents = ByteBuffer.allocate(maxWriteIndex);
-				newContents.put(contents.get(path));
-				contents.put(path, newContents);
-			}
-			buffer.get(0, bytesToWrite, 0, (int) bufSize);
-
-			contents.get(path).position((int) writeOffset);
-			contents.get(path).put(bytesToWrite);
-			contents.get(path).position(0); // Rewind
+//			if (maxWriteIndex > this.contents.get(path).capacity()) {
+//				// Need to create a new, larger buffer
+//				ByteBuffer newContents = ByteBuffer.allocate(maxWriteIndex);
+//				newContents.put(contents.get(path));
+//				contents.put(path, newContents);
+//			}
+//			buffer.get(0, bytesToWrite, 0, (int) bufSize);
+//
+//			contents.get(path).position((int) writeOffset);
+//			contents.get(path).put(bytesToWrite);
+//			contents.get(path).position(0); // Rewind
 
 		}
 
@@ -581,18 +595,21 @@ public class SafeCloudFileSystem extends FuseStubFS {
 
 	@Override
 	public int getxattr(String path, String name, Pointer value, long size) {
+		SafeCloudFSUtils.LOGGER.info("Operation: getxattr. Path: " + path);
 		// TODO Auto-generated method stub
 		return super.getxattr(path, name, value, size);
 	}
 
 	@Override
 	public int listxattr(String path, Pointer list, long size) {
+		SafeCloudFSUtils.LOGGER.info("Operation: listxattr. Path: " + path);
 		// TODO Auto-generated method stub
 		return super.listxattr(path, list, size);
 	}
 
 	@Override
 	public int access(String path, int mask) {
+		SafeCloudFSUtils.LOGGER.info("Operation: access. Path: " + path);
 		this.directoryService.setAtim(path);
 		return super.access(path, mask);
 	}

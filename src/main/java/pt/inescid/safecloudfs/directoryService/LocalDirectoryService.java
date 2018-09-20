@@ -274,4 +274,16 @@ public class LocalDirectoryService implements DirectoryService {
 
 	}
 
+	@Override
+	public long getSize(String path) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setSize(String path, long size) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

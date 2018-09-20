@@ -63,7 +63,9 @@ public interface DirectoryService {
 	public void setMtim(String path);
 
 
+	public long getSize(String path);
 
+	public void setSize(String path, long size);
 
 
 }
